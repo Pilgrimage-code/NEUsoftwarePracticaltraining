@@ -1,0 +1,378 @@
+package com.cemh.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.cemh.common.PageResult;
+import com.cemh.common.Result;
+import com.cemh.dto.MeetingDTO;
+import com.cemh.dto.MeetingQueryDTO;
+import com.cemh.entity.Meeting;
+import com.cemh.mapper.MeetingMapper;
+import com.cemh.service.MeetingService;
+import com.cemh.vo.MeetingVO;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 会议服务实现类
+ */
+@Service
+@Transactional
+public class MeetingServiceImpl implements MeetingService {
+    
+    @Autowired
+    private MeetingMapper meetingMapper;
+    
+    @Override
+    public Result<Void> createMeeting(MeetingDTO meetingDTO) {
+        try {
+            // 数据验证
+            if (meetingDTO.getStartTime().isAfter(meetingDTO.getEndTime())) {
+                return Result.error("开始时间不能晚于结束时间");
+            }
+            
+            // DTO转实体
+            Meeting meeting = new Meeting();
+            BeanUtils.copyProperties(meetingDTO, meeting);
+            
+            // 设置默认值
+            meeting.setStatus(0); // 草稿状态
+            meeting.setCurrentParticipants(0);
+            meeting.setViewCount(0);
+            meeting.setIsTop(0);
+            
+            // 保存到数据库
+            int result = meetingMapper.insert(meeting);
+            if (result > 0) {
+                return Result.success();
+            } else {
+                return Result.error("创建会议失败");
+            }
+        } catch (Exception e) {
+            return Result.error("创建会议异常：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<Void> updateMeeting(MeetingDTO meetingDTO) {
+        try {
+            // 检查会议是否存在
+            Meeting existingMeeting = meetingMapper.selectById(meetingDTO.getId());
+            if (existingMeeting == null) {
+                return Result.error("会议不存在");
+            }
+            
+            // 数据验证
+            if (meetingDTO.getStartTime().isAfter(meetingDTO.getEndTime())) {
+                return Result.error("开始时间不能晚于结束时间");
+            }
+            
+            // DTO转实体
+            Meeting meeting = new Meeting();
+            BeanUtils.copyProperties(meetingDTO, meeting);
+            
+            // 更新到数据库
+            int result = meetingMapper.updateById(meeting);
+            if (result > 0) {
+                return Result.success();
+            } else {
+                return Result.error("更新会议失败");
+            }
+        } catch (Exception e) {
+            return Result.error("更新会议异常：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<Void> deleteMeeting(Long id, Long tenantId) {
+        try {
+            // 检查会议是否存在
+            Meeting meeting = meetingMapper.selectById(id);
+            if (meeting == null) {
+                return Result.error("会议不存在");
+            }
+            
+            // 检查租户权限
+            if (!meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限删除此会议");
+            }
+            
+            // 删除会议
+            int result = meetingMapper.deleteById(id);
+            if (result > 0) {
+                return Result.success();
+            } else {
+                return Result.error("删除会议失败");
+            }
+        } catch (Exception e) {
+            return Result.error("删除会议异常：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<MeetingVO> getMeetingDetail(Long id, Long tenantId) {
+        try {
+            // 查询会议
+            Meeting meeting = meetingMapper.selectById(id);
+            if (meeting == null) {
+                return Result.error("会议不存在");
+            }
+            
+            // 检查租户权限
+            if (!meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限查看此会议");
+            }
+            
+            // 实体转VO
+            MeetingVO meetingVO = convertToVO(meeting);
+            
+            // 增加浏览次数
+            meeting.setViewCount(meeting.getViewCount() + 1);
+            meetingMapper.updateById(meeting);
+            
+            return Result.success(meetingVO);
+        } catch (Exception e) {
+            return Result.error("获取会议详情异常：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<PageResult<MeetingVO>> getMeetingList(MeetingQueryDTO queryDTO) {
+        try {
+            // 构建查询条件
+            LambdaQueryWrapper<Meeting> queryWrapper = new LambdaQueryWrapper<>();
+            
+            // 标题模糊查询
+            if (StringUtils.hasText(queryDTO.getTitle())) {
+                queryWrapper.like(Meeting::getTitle, queryDTO.getTitle());
+            }
+            
+            // 会议类型
+            if (queryDTO.getType() != null) {
+                queryWrapper.eq(Meeting::getMeetingType, queryDTO.getType());
+            }
+            
+            // 会议状态
+            if (queryDTO.getStatus() != null) {
+                queryWrapper.eq(Meeting::getStatus, queryDTO.getStatus());
+            }
+            
+            // 创建人
+            if (queryDTO.getCreateBy() != null) {
+                queryWrapper.eq(Meeting::getCreateBy, queryDTO.getCreateBy());
+            }
+            
+            // 租户ID
+            if (queryDTO.getTenantId() != null) {
+                queryWrapper.eq(Meeting::getTenantId, queryDTO.getTenantId());
+            }
+            
+            // 开始时间范围
+            if (queryDTO.getStartTimeBegin() != null) {
+                queryWrapper.ge(Meeting::getStartTime, queryDTO.getStartTimeBegin());
+            }
+            if (queryDTO.getStartTimeEnd() != null) {
+                queryWrapper.le(Meeting::getStartTime, queryDTO.getStartTimeEnd());
+            }
+            
+            // 创建时间范围
+            if (queryDTO.getCreateTimeBegin() != null) {
+                queryWrapper.ge(Meeting::getCreateTime, queryDTO.getCreateTimeBegin());
+            }
+            if (queryDTO.getCreateTimeEnd() != null) {
+                queryWrapper.le(Meeting::getCreateTime, queryDTO.getCreateTimeEnd());
+            }
+            
+            // 排序
+            if ("asc".equals(queryDTO.getSortOrder())) {
+                queryWrapper.orderByAsc(Meeting::getCreateTime);
+            } else {
+                queryWrapper.orderByDesc(Meeting::getCreateTime);
+            }
+            
+            // 分页查询
+            Page<Meeting> page = new Page<>(queryDTO.getPage(), queryDTO.getSize());
+            IPage<Meeting> meetingPage = meetingMapper.selectPage(page, queryWrapper);
+            
+            // 实体转VO
+            List<MeetingVO> meetingVOList = meetingPage.getRecords().stream()
+                    .map(this::convertToVO)
+                    .collect(Collectors.toList());
+            
+            // 构建分页结果
+            PageResult<MeetingVO> pageResult = new PageResult<>();
+            pageResult.setRecords(meetingVOList);
+            pageResult.setTotal(meetingPage.getTotal());
+            pageResult.setSize(meetingPage.getSize());
+            pageResult.setCurrent(meetingPage.getCurrent());
+            pageResult.setPages(meetingPage.getPages());
+            
+            return Result.success(pageResult);
+        } catch (Exception e) {
+            return Result.error("获取会议列表异常：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<Void> cancelMeeting(Long id, String reason, Long tenantId, Long userId) {
+        try {
+            // 检查会议是否存在
+            Meeting meeting = meetingMapper.selectById(id);
+            if (meeting == null) {
+                return Result.error("会议不存在");
+            }
+            
+            // 检查租户权限
+            if (!meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限取消此会议");
+            }
+            
+            // 更新会议状态为已取消
+            meeting.setStatus(6); // 已取消
+            meeting.setRemark(reason);
+            meeting.setUpdateBy(userId);
+            meeting.setUpdateTime(LocalDateTime.now());
+            
+            int result = meetingMapper.updateById(meeting);
+            if (result > 0) {
+                return Result.success();
+            } else {
+                return Result.error("取消会议失败");
+            }
+        } catch (Exception e) {
+            return Result.error("取消会议异常：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<Void> publishMeeting(Long id, Long tenantId, Long userId) {
+        try {
+            // 检查会议是否存在
+            Meeting meeting = meetingMapper.selectById(id);
+            if (meeting == null) {
+                return Result.error("会议不存在");
+            }
+            
+            // 检查租户权限
+            if (!meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限发布此会议");
+            }
+            
+            // 更新会议状态为已发布
+            meeting.setStatus(1); // 已发布
+            meeting.setUpdateBy(userId);
+            meeting.setUpdateTime(LocalDateTime.now());
+            
+            int result = meetingMapper.updateById(meeting);
+            if (result > 0) {
+                return Result.success();
+            } else {
+                return Result.error("发布会议失败");
+            }
+        } catch (Exception e) {
+            return Result.error("发布会议异常：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<Void> topMeeting(Long id, Boolean isTop, Long tenantId, Long userId) {
+        try {
+            // 检查会议是否存在
+            Meeting meeting = meetingMapper.selectById(id);
+            if (meeting == null) {
+                return Result.error("会议不存在");
+            }
+            
+            // 检查租户权限
+            if (!meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限操作此会议");
+            }
+            
+            // 更新置顶状态
+            meeting.setIsTop(isTop ? 1 : 0);
+            meeting.setUpdateBy(userId);
+            meeting.setUpdateTime(LocalDateTime.now());
+            
+            int result = meetingMapper.updateById(meeting);
+            if (result > 0) {
+                return Result.success();
+            } else {
+                return Result.error("操作失败");
+            }
+        } catch (Exception e) {
+            return Result.error("操作异常：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 实体转VO
+     */
+    private MeetingVO convertToVO(Meeting meeting) {
+        MeetingVO vo = new MeetingVO();
+        BeanUtils.copyProperties(meeting, vo);
+        
+        // 设置类型文本
+        switch (meeting.getMeetingType()) {
+            case 1:
+                vo.setType("online");
+                vo.setTypeText("线上会议");
+                break;
+            case 2:
+                vo.setType("offline");
+                vo.setTypeText("线下会议");
+                break;
+            case 3:
+                vo.setType("hybrid");
+                vo.setTypeText("混合会议");
+                break;
+        }
+        
+        // 设置状态文本
+        switch (meeting.getStatus()) {
+            case 0:
+                vo.setStatus("draft");
+                vo.setStatusText("草稿");
+                break;
+            case 1:
+                vo.setStatus("published");
+                vo.setStatusText("已发布");
+                break;
+            case 2:
+                vo.setStatus("ongoing");
+                vo.setStatusText("报名中");
+                break;
+            case 3:
+                vo.setStatus("registration_ended");
+                vo.setStatusText("报名结束");
+                break;
+            case 4:
+                vo.setStatus("in_progress");
+                vo.setStatusText("进行中");
+                break;
+            case 5:
+                vo.setStatus("completed");
+                vo.setStatusText("已结束");
+                break;
+            case 6:
+                vo.setStatus("cancelled");
+                vo.setStatusText("已取消");
+                break;
+        }
+        
+        // 设置其他计算字段
+        vo.setCurrentParticipants(meeting.getCurrentParticipants());
+        vo.setCanRegister(meeting.getStatus() == 2); // 报名中状态可以报名
+        vo.setHasRegistered(false); // 需要根据用户查询
+        
+        return vo;
+    }
+}
+
