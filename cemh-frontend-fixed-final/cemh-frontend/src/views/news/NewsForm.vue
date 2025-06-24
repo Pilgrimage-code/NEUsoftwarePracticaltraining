@@ -323,7 +323,7 @@ const submitForm = async () => {
   try {
     await formRef.value.validate()
     submitting.value = true
-    
+    console.log('提交数据', JSON.stringify(formData))
     // 这里应该调用API提交表单
     // if (isEdit.value) {
     //   await updateNews(route.params.id, formData)

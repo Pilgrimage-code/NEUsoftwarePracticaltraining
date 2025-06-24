@@ -679,7 +679,7 @@ export default {
 
       try {
         await newsFormRef.value.validate()
-
+        console.log('提交数据', JSON.stringify(newsForm))
         // 获取富文本编辑器内容
         if (richEditor) {
           newsForm.content = richEditor.getContent()

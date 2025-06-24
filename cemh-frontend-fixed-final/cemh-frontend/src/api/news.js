@@ -35,7 +35,7 @@ export const newsApi = {
       summary: data.summary,
       content: data.content,
       author: data.author,
-      coverImage: data.imagePath, // 前端imagePath -> 后端coverImage
+      coverImage: data.coverImage, // 前端imagePath -> 后端coverImage
       categoryName: data.category, // 前端category -> 后端categoryName
       tags: data.tags || '',
       source: data.source || '',
@@ -65,7 +65,7 @@ export const newsApi = {
       summary: data.summary,
       content: data.content,
       author: data.author,
-      coverImage: data.imagePath, // 前端imagePath -> 后端coverImage
+      coverImage: data.coverImage, // 前端imagePath -> 后端coverImage
       categoryName: data.category, // 前端category -> 后端categoryName
       tags: data.tags || '',
       source: data.source || '',
