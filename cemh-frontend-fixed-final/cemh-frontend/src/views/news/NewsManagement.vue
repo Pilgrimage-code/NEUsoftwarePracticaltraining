@@ -108,12 +108,7 @@
                   style="width: 50px; height: 50px"
                   fit="cover"
               />
-              <el-image
-                  v-else
-                  :src="'http://localhost:8080/uplutupianoads/20250624_2fd82057-eb5a-44e7-8d36-4d96a6d09f88.png'"
-                  style="width: 50px; height: 50px"
-                  fit="cover"
-              />
+              <span v-else>无图片</span>
             </template>
           </el-table-column>
           <el-table-column prop="author" label="作者" width="100" />
