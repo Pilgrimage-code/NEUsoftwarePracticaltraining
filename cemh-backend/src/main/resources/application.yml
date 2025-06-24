@@ -1,7 +1,7 @@
 server:
   port: 8080
   servlet:
-    context-path: /api
+    # 移除context-path，让接口直接在根路径下
     encoding:
       charset: UTF-8
       enabled: true
@@ -157,7 +157,7 @@ cemh:
     expiration: 86400
     # JWT刷新时间（秒）
     refresh: 604800
-  
+
 # 文件上传配置
 file:
   upload:

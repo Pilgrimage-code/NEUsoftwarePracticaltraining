@@ -5,7 +5,7 @@
       <div class="sidebar-header">
         <div class="logo" @click="navigateToHome">
           <div class="logo-icon">
-            <img src="/public/logo.png" alt="测盟汇" class="logo-image" />
+            <img src="/logo.png" alt="测盟汇" class="logo-image" />
           </div>
           <transition name="fade">
             <span v-show="!sidebarCollapsed" class="logo-text">测盟汇</span>

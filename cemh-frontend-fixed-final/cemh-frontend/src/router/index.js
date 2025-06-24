@@ -6,7 +6,7 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
+    component: () => import('@/views/auth/Login.vue'),
     meta: {
       title: '登录',
       requiresAuth: false
@@ -19,7 +19,7 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Layout',
-    component: () => import('@/views/Layout.vue'),
+    component: () => import('@/views/layout/Layout.vue'),
     meta: {
       title: '控制台',
       requiresAuth: true
@@ -28,52 +28,17 @@ const routes = [
       {
         path: '',
         name: 'Dashboard',
-        component: () => import('@/views/Dashboard.vue'),
+        component: () => import('@/views/dashboard/Dashboard.vue'),
         meta: {
           title: '首页',
           requiresAuth: true
         }
       },
-      {
-        path: 'meetings',
-        name: 'MeetingManagement',
-        component: () => import('@/views/dashboard/MeetingManagement.vue'),
-        meta: {
-          title: '会议管理',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'meetings/create',
-        name: 'MeetingCreate',
-        component: () => import('@/views/dashboard/MeetingForm.vue'),
-        meta: {
-          title: '创建会议',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'meetings/edit/:id',
-        name: 'MeetingEdit',
-        component: () => import('@/views/dashboard/MeetingForm.vue'),
-        meta: {
-          title: '编辑会议',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'meetings/:id',
-        name: 'MeetingDetail',
-        component: () => import('@/views/dashboard/MeetingDetail.vue'),
-        meta: {
-          title: '会议详情',
-          requiresAuth: true
-        }
-      },
+      // 资讯管理路由
       {
         path: 'news',
         name: 'NewsManagement',
-        component: () => import('@/views/dashboard/NewsManagement.vue'),
+        component: () => import('@/views/news/NewsManagement.vue'),
         meta: {
           title: '资讯管理',
           requiresAuth: true
@@ -82,34 +47,100 @@ const routes = [
       {
         path: 'news/create',
         name: 'NewsCreate',
-        component: () => import('@/views/dashboard/NewsForm.vue'),
+        component: () => import('@/views/news/NewsForm.vue'),
         meta: {
-          title: '发布资讯',
+          title: '新增资讯',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'news/edit/:id',
+        name: 'NewsEdit',
+        component: () => import('@/views/news/NewsForm.vue'),
+        meta: {
+          title: '编辑资讯',
           requiresAuth: true
         }
       },
       {
         path: 'news/:id',
         name: 'NewsDetail',
-        component: () => import('@/views/dashboard/NewsDetail.vue'),
+        component: () => import('@/views/news/NewsDetail.vue'),
         meta: {
           title: '资讯详情',
           requiresAuth: true
         }
       },
+      // 会议管理路由
+      {
+        path: 'meetings',
+        name: 'MeetingManagement',
+        component: () => import('@/views/meeting/MeetingManagement.vue'),
+        meta: {
+          title: '会议管理',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'meetings/create',
+        name: 'MeetingCreate',
+        component: () => import('@/views/meeting/MeetingForm.vue'),
+        meta: {
+          title: '创建会议',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'meetings/edit/:id',
+        name: 'MeetingEdit',
+        component: () => import('@/views/meeting/MeetingForm.vue'),
+        meta: {
+          title: '编辑会议',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'meetings/:id',
+        name: 'MeetingDetail',
+        component: () => import('@/views/meeting/MeetingDetail.vue'),
+        meta: {
+          title: '会议详情',
+          requiresAuth: true
+        }
+      },
+      // 用户管理路由
       {
         path: 'users',
         name: 'UserManagement',
-        component: () => import('@/views/dashboard/UserManagement.vue'),
+        component: () => import('@/views/user/UserManagement.vue'),
         meta: {
           title: '用户管理',
           requiresAuth: true
         }
       },
       {
+        path: 'profile',
+        name: 'UserProfile',
+        component: () => import('@/views/user/UserProfile.vue'),
+        meta: {
+          title: '个人中心',
+          requiresAuth: true
+        }
+      },
+      // 系统管理路由
+      {
+        path: 'roles',
+        name: 'RoleManagement',
+        component: () => import('@/views/system/RoleManagement.vue'),
+        meta: {
+          title: '角色管理',
+          requiresAuth: true
+        }
+      },
+      {
         path: 'departments',
         name: 'DeptManagement',
-        component: () => import('@/views/dashboard/DeptManagement.vue'),
+        component: () => import('@/views/system/DeptManagement.vue'),
         meta: {
           title: '部门管理',
           requiresAuth: true
@@ -118,16 +149,25 @@ const routes = [
       {
         path: 'tenants',
         name: 'TenantManagement',
-        component: () => import('@/views/dashboard/TenantManagement.vue'),
+        component: () => import('@/views/system/TenantManagement.vue'),
         meta: {
           title: '租户管理',
           requiresAuth: true
         }
       },
       {
+        path: 'settings',
+        name: 'SystemSettings',
+        component: () => import('@/views/system/Settings.vue'),
+        meta: {
+          title: '系统设置',
+          requiresAuth: true
+        }
+      },
+      {
         path: 'files',
         name: 'FileManagement',
-        component: () => import('@/views/dashboard/FileManagement.vue'),
+        component: () => import('@/views/system/FileManagement.vue'),
         meta: {
           title: '文件管理',
           requiresAuth: true
@@ -136,36 +176,57 @@ const routes = [
       {
         path: 'analytics',
         name: 'Analytics',
-        component: () => import('@/views/dashboard/Analytics.vue'),
+        component: () => import('@/views/system/Analytics.vue'),
         meta: {
           title: '数据分析',
           requiresAuth: true
         }
       },
       {
-        path: 'system',
+        path: 'system-monitor',
         name: 'SystemMonitor',
-        component: () => import('@/views/dashboard/SystemMonitor.vue'),
+        component: () => import('@/views/system/SystemMonitor.vue'),
         meta: {
           title: '系统监控',
           requiresAuth: true
         }
       },
+      // 课程管理路由
       {
-        path: 'profile',
-        name: 'UserProfile',
-        component: () => import('@/views/dashboard/UserProfile.vue'),
+        path: 'courses',
+        name: 'CourseManagement',
+        component: () => import('@/views/course/CourseManagement.vue'),
         meta: {
-          title: '个人中心',
+          title: '课程管理',
           requiresAuth: true
         }
       },
       {
-        path: 'settings',
-        name: 'Settings',
-        component: () => import('@/views/dashboard/Settings.vue'),
+        path: 'learning-records',
+        name: 'LearningRecords',
+        component: () => import('@/views/course/LearningRecords.vue'),
         meta: {
-          title: '系统设置',
+          title: '学习记录',
+          requiresAuth: true
+        }
+      },
+      // 统计分析路由
+      {
+        path: 'statistics',
+        name: 'Statistics',
+        component: () => import('@/views/dashboard/Statistics.vue'),
+        meta: {
+          title: '统计分析',
+          requiresAuth: true
+        }
+      },
+      // 个人中心路由
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/dashboard/Profile.vue'),
+        meta: {
+          title: '个人中心',
           requiresAuth: true
         }
       }
@@ -174,7 +235,7 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/views/NotFound.vue'),
+    component: () => import('@/views/error/NotFound.vue'),
     meta: {
       title: '页面不存在'
     }

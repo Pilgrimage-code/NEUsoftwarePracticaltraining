@@ -370,14 +370,25 @@ const beforeCoverUpload = (file) => {
   return true
 }
 
-const uploadCover = (options) => {
-  // 这里应该实现真实的文件上传
+const uploadCover = async (options) => {
   const file = options.file
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    formData.coverImage = e.target.result
+  const data = new FormData()
+  data.append('file', file)
+  try {
+    const response = await fetch('http://localhost:8080/api/upload/image', {
+      method: 'POST',
+      body: data
+    })
+    const res = await response.json()
+    if (res.code === 200) {
+      formData.coverImage = res.data.url
+      ElMessage.success('图片上传成功')
+    } else {
+      ElMessage.error(res.message || '图片上传失败')
+    }
+  } catch (e) {
+    ElMessage.error('图片上传失败')
   }
-  reader.readAsDataURL(file)
 }
 
 const insertImage = () => {
