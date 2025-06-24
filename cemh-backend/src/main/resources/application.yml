@@ -158,14 +158,11 @@ cemh:
     # JWT刷新时间（秒）
     refresh: 604800
   
-  # 文件上传配置
+# 文件上传配置
+file:
   upload:
     # 文件上传路径
-    path: /home/ubuntu/cemh-system/uploads/
-    # 访问前缀
-    prefix: /uploads/
-    # 允许的文件类型
-    allowed-types: jpg,jpeg,png,gif,bmp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt,mp4,avi,mov
-    # 最大文件大小（MB）
-    max-size: 100
+    path: E:/temp/uploads
+    # 访问URL前缀
+    url-prefix: http://localhost:8080/uploads
 

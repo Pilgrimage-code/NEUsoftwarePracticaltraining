@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,14 +18,14 @@ import java.util.Collections;
  * 解决 allowCredentials(true) 和 allowedOrigins 冲突问题
  */
 @Configuration
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
 
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
         // 设置允许的源
-        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:5183" )); // 确保这里是前端的端口
 
         // 设置允许的请求方法
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -47,5 +49,11 @@ public class WebConfig {
         source.registerCorsConfiguration("/**", corsConfiguration);
 
         return new CorsFilter(source);
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:/E:/temp/uploads/"); // 确保这里是文件上传的实际路径
     }
 }
