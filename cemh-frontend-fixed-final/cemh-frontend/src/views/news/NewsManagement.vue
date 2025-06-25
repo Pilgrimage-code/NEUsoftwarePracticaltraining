@@ -108,7 +108,12 @@
                   style="width: 50px; height: 50px"
                   fit="cover"
               />
-              <span v-else>无图片</span>
+              <el-image
+                  v-else
+                  :src="'http://localhost:8080/uplutupianoads/20250624_2fd82057-eb5a-44e7-8d36-4d96a6d09f88.png'"
+                  style="width: 50px; height: 50px"
+                  fit="cover"
+              />
             </template>
           </el-table-column>
           <el-table-column prop="author" label="作者" width="100" />
@@ -186,6 +191,20 @@
               maxlength="500"
               show-word-limit
           />
+        </el-form-item>
+
+        <el-form-item label="所属企业" prop="tenantId">
+          <el-select v-model="newsForm.tenantId" placeholder="请选择所属企业">
+            <el-option v-for="item in tenantList" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+
+        </el-form-item>
+
+        <el-form-item label="资讯分类" prop="categoryId">
+          <el-select v-model="newsForm.categoryId" placeholder="请选择资讯分类">
+            <el-option v-for="item in categoryList" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+
         </el-form-item>
 
         <el-form-item label="作者" prop="author">
@@ -298,11 +317,19 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Document, Search, Refresh, Plus, Delete, View, Edit } from '@element-plus/icons-vue'
 import { newsApi } from '@/api/news'
 
+const deptList = ref([])
+
+
+
+onMounted(() => {
+  loadTenantAndCategory()
+  getNewsList()
+})
 // 简单的富文本编辑器实现
 class SimpleRichEditor {
   constructor(container) {
@@ -403,8 +430,38 @@ export default {
     const uploadRef = ref(null)
     const currentNews = ref(null)
     const previewImageUrl = ref('')
+    const tenantList = ref([])
+    const deptList = ref([])
+    const categoryList = ref([])
     let richEditor = null
 
+    const loadTenantAndCategory = async () => {
+      try {
+        // 获取租户
+        const tenantRes = await fetch('http://localhost:8080/api/tenants/all');
+        const tenantData = await tenantRes.json();
+        if (tenantData.code === 200) {
+          tenantList.value = tenantData.data.map(item => ({
+            value: item.id,
+            label: item.tenantName
+          }));
+        }
+        // 获取分类
+        const categoryRes = await fetch('http://localhost:8080/api/news-categories/all');
+        const categoryData = await categoryRes.json();
+        if (categoryData.code === 200) {
+          categoryList.value = categoryData.data.map(item => ({
+            value: item.id,
+            label: item.categoryName
+          }));
+        }
+        console.log('企业列表', tenantList.value)
+        console.log('分类列表', categoryList.value)
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        ElMessage.error('加载数据失败');
+      }
+    };
     // 上传配置
     const uploadAction = ref('http://localhost:8080/api/upload/image')
     const uploadHeaders = ref({
@@ -433,7 +490,8 @@ export default {
       summary: '',
       content: '',
       author: '',
-      coverImage: ''
+      coverImage: '',
+      tenantId: ''
     })
 
     // 表单验证规则
@@ -455,6 +513,9 @@ export default {
       ],
       coverImage: [
         { required: true, message: '新闻图片不能为空', trigger: 'change' }
+      ],
+      tenantId: [
+        { required: true, message: '请选择所属企业', trigger: 'change' }
       ]
     }
 
@@ -506,29 +567,15 @@ export default {
       getNewsList()
     }
 
-    // 重置表单
-    const resetNewsForm = () => {
-      Object.assign(newsForm, {
-        id: null,
-        title: '',
-        summary: '',
-        content: '',
-        author: '',
-        coverImage: ''
-      })
-      if (richEditor) {
-        richEditor.setContent('')
-      }
-    }
-
     // 新增资讯
-    const handleAdd = () => {
-      dialogTitle.value = '新增资讯'
-      resetNewsForm()
-      dialogVisible.value = true
+    const handleAdd = async () => {
+      await loadTenantAndCategory(); // 确保每次弹窗打开都加载
+      resetNewsForm();
+      dialogTitle.value = '新增资讯';
+      dialogVisible.value = true;
       nextTick(() => {
-        initRichEditor()
-      })
+        initRichEditor();
+      });
     }
 
     // 编辑资讯
@@ -677,23 +724,20 @@ export default {
     const handleSubmit = async () => {
       if (!newsFormRef.value) return
 
-      // 1. 获取富文本内容
+      // 1. 先同步富文本内容
       if (richEditor) {
         newsForm.content = richEditor.getContent()
       }
 
-      // 2. 过滤HTML标签后判断内容是否为空
-      function stripHtml(html) {
-        return html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '').trim()
-      }
-      if (!stripHtml(newsForm.content)) {
-        ElMessage.error('新闻内容不能为空')
-        return
-      }
-
+      // 2. 再校验表单
       try {
         await newsFormRef.value.validate()
-        console.log('提交数据', JSON.stringify(newsForm))
+
+        // 3. 验证内容不能为空
+        if (!newsForm.content || newsForm.content.trim() === '<p><br></p>' || newsForm.content.trim() === '') {
+          ElMessage.error('新闻内容不能为空')
+          return
+        }
 
         submitLoading.value = true
 
@@ -730,6 +774,22 @@ export default {
       }
     }
 
+    // 重置表单
+    const resetNewsForm = () => {
+      Object.assign(newsForm, {
+        id: null,
+        title: '',
+        summary: '',
+        content: '',
+        author: '',
+        coverImage: '',
+        tenantId: ''
+      })
+      if (richEditor) {
+        richEditor.setContent('')
+      }
+    }
+
     // 组件挂载
     onMounted(() => {
       getNewsList()
@@ -756,7 +816,9 @@ export default {
       pagination,
       newsForm,
       newsFormRules,
-
+      tenantList,
+      deptList,
+      categoryList,
       // 方法
       formatDate,
       getNewsList,
@@ -776,13 +838,46 @@ export default {
       handleImagePreview,
       handleImageRemove,
       handleSubmit,
-      handleDialogClose
+      handleDialogClose,
+      resetNewsForm
     }
   }
 }
 </script>
 
 <style scoped>
+
+/* 表单项样式 */
+.form-item-custom {
+  margin-bottom: 20px;
+}
+/* 下拉框样式 */
+.custom-select {
+  width: 100%;
+}
+/* 下拉选项样式 */
+.el-select-dropdown__item {
+  padding: 8px 20px;
+}
+/* 选中项样式 */
+.el-select-dropdown__item.selected {
+  color: #409eff;
+  font-weight: 600;
+}
+/* 鼠标悬停样式 */
+.el-select-dropdown__item:hover {
+  background-color: #f5f7fa;
+}
+/* 输入框样式 */
+.el-input__inner {
+  border-radius: 4px;
+  transition: border-color 0.3s;
+}
+.el-input__inner:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
 .news-management {
   padding: 20px;
 }
