@@ -677,19 +677,23 @@ export default {
     const handleSubmit = async () => {
       if (!newsFormRef.value) return
 
+      // 1. 获取富文本内容
+      if (richEditor) {
+        newsForm.content = richEditor.getContent()
+      }
+
+      // 2. 过滤HTML标签后判断内容是否为空
+      function stripHtml(html) {
+        return html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '').trim()
+      }
+      if (!stripHtml(newsForm.content)) {
+        ElMessage.error('新闻内容不能为空')
+        return
+      }
+
       try {
         await newsFormRef.value.validate()
         console.log('提交数据', JSON.stringify(newsForm))
-        // 获取富文本编辑器内容
-        if (richEditor) {
-          newsForm.content = richEditor.getContent()
-        }
-
-        // 验证内容不能为空
-        if (!newsForm.content || newsForm.content.trim() === '<p><br></p>' || newsForm.content.trim() === '') {
-          ElMessage.error('新闻内容不能为空')
-          return
-        }
 
         submitLoading.value = true
 
@@ -701,7 +705,6 @@ export default {
         } else {
           response = await newsApi.createNews(newsForm, tenantId, userId)
         }
-
 
         if (response.code === 200) {
           ElMessage.success(newsForm.id ? '修改成功' : '创建成功')

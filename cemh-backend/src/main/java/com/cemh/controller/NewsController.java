@@ -7,8 +7,6 @@ import com.cemh.service.NewsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +22,6 @@ import java.util.Map;
 @RequestMapping("/api/news")
 @CrossOrigin(origins = "*")
 public class NewsController {
-    
-    private static final Logger logger = LoggerFactory.getLogger(NewsController.class);
     
     @Autowired
     private NewsService newsService;
@@ -53,7 +49,6 @@ public class NewsController {
     public Result<Void> createNews(@Valid @RequestBody News news,
                                    @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
                                    @RequestHeader(value = "X-User-Id", required = false) Long userId) {
-        logger.info("[createNews] 接收到的 coverImage: {}", news.getCoverImage());
         if (tenantId != null) {
             news.setTenantId(tenantId);
         }
@@ -69,7 +64,6 @@ public class NewsController {
                                    @Valid @RequestBody News news,
                                    @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
                                    @RequestHeader(value = "X-User-Id", required = false) Long userId) {
-        logger.info("[updateNews] 接收到的 coverImage: {}", news.getCoverImage());
         news.setId(id);
         if (tenantId != null) {
             news.setTenantId(tenantId);
