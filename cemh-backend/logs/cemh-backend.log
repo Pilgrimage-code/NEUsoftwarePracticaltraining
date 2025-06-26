@@ -11741,3 +11741,5 @@ java.lang.ClassNotFoundException: org.apache.commons.io.output.UnsynchronizedByt
 2025-06-26 20:04:33 [http-nio-8080-exec-6] INFO  com.cemh.controller.LearningRecordController - [getRecordList] 查询学习记录, 用户ID: 1, 课程ID: null, 状态: null, 页码: 1, 大小: 100
 2025-06-26 21:00:14 [http-nio-8080-exec-6] INFO  com.cemh.controller.LearningRecordController - [getUserLearningStats] 获取用户学习统计, 用户ID: 1
 2025-06-26 21:00:14 [http-nio-8080-exec-8] INFO  com.cemh.controller.LearningRecordController - [getRecordList] 查询学习记录, 用户ID: 1, 课程ID: null, 状态: null, 页码: 1, 大小: 100
+2025-06-26 21:29:55 [SpringApplicationShutdownHook] INFO  com.alibaba.druid.pool.DruidDataSource - {dataSource-1} closing ...
+2025-06-26 21:29:55 [SpringApplicationShutdownHook] INFO  com.alibaba.druid.pool.DruidDataSource - {dataSource-1} closed
