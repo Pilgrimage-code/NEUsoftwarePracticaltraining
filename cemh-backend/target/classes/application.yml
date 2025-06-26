@@ -104,8 +104,8 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
-      # 全局默认主键类型
-      id-type: ASSIGN_ID
+      # 主键类型
+      id-type: auto
       # 逻辑删除字段名
       logic-delete-field: deleted
       # 逻辑删除全局值（1表示已删除）

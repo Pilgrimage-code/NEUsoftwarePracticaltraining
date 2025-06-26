@@ -58,20 +58,25 @@
               />
             </el-form-item>
 
-            <el-form-item label="资讯分类" prop="category">
-              <el-select
-                v-model="formData.category"
+            <el-select
+                v-model="formData.tenantId"
+                placeholder="请选择所属企业"
+                v-if="tenantList.length > 0"
+                class="modern-select"
+            >
+              <el-option v-for="item in tenantList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+
+            <el-select
+                v-model="formData.categoryId"
                 placeholder="请选择资讯分类"
-                class="modern-input"
-                style="width: 100%"
-              >
-                <el-option label="公司新闻" value="company" />
-                <el-option label="行业动态" value="industry" />
-                <el-option label="产品更新" value="product" />
-                <el-option label="活动通知" value="activity" />
-                <el-option label="其他" value="other" />
-              </el-select>
-            </el-form-item>
+                v-if="categoryList.length > 0"
+                class="modern-select"
+            >
+              <el-option v-for="item in categoryList" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+
+
 
             <el-form-item label="发布状态" prop="status">
               <el-radio-group v-model="formData.status">
@@ -241,7 +246,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import {ref, reactive, onMounted, nextTick, computed} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
@@ -256,6 +261,8 @@ const tagInputVisible = ref(false)
 const tagInputValue = ref('')
 
 const isEdit = computed(() => !!route.params.id)
+const tenantList = ref([])
+const categoryList = ref([])
 
 const formData = reactive({
   title: '',
@@ -268,8 +275,37 @@ const formData = reactive({
   tags: [],
   keywords: '',
   permission: 'public',
-  commentSettings: ['allowComment']
+  commentSettings: ['allowComment'],
+  tenantId: '',      // 新增
+  categoryId: '',    // 新增
 })
+const loadTenantAndCategory = async () => {
+  try {
+    // 租户数据（格式转换）
+    const tenantRes = await fetch('http://localhost:8080/api/tenants/all');
+    const tenantData = await tenantRes.json();
+    if (tenantData.code === 200) {
+      tenantList.value = tenantData.data.map(item => ({
+        value: item.id,
+        label: item.tenantName
+      }));
+    }
+    // 分类数据（格式转换）
+    const categoryRes = await fetch('http://localhost:8080/api/news-categories/all');
+    const categoryData = await categoryRes.json();
+    if (categoryData.code === 200) {
+      categoryList.value = categoryData.data.map(item => ({
+        value: item.id,
+        label: item.categoryName
+      }));
+    }
+    console.log('企业列表', tenantList.value)
+    console.log('分类列表', categoryList.value)
+  } catch (error) {
+    console.error('加载数据失败:', error);
+    ElMessage.error('加载数据失败');
+  }
+};
 
 // 表单验证规则
 const formRules = {
@@ -290,7 +326,13 @@ const formRules = {
   ],
   publishTime: [
     { required: true, message: '请选择发布时间', trigger: 'change' }
-  ]
+  ],
+  tenantId: [
+    { required: true, message: '请选择所属企业', trigger: 'change' }
+  ],
+  categoryId: [
+    { required: true, message: '请选择资讯分类', trigger: 'change' }
+  ],
 }
 
 // 方法
@@ -323,7 +365,7 @@ const submitForm = async () => {
   try {
     await formRef.value.validate()
     submitting.value = true
-    console.log('提交数据', JSON.stringify(formData))
+    
     // 这里应该调用API提交表单
     // if (isEdit.value) {
     //   await updateNews(route.params.id, formData)
@@ -427,6 +469,7 @@ const addTag = () => {
 }
 
 onMounted(() => {
+  loadTenantAndCategory()
   loadNewsData()
 })
 </script>

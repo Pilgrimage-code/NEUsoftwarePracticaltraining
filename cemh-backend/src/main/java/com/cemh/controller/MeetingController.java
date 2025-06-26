@@ -29,8 +29,8 @@ public class MeetingController {
     @Operation(summary = "创建会议", description = "创建新的会议")
     @PostMapping("/create")
     public Result<Void> createMeeting(@Valid @RequestBody MeetingDTO meetingDTO,
-                                      @RequestHeader("X-Tenant-Id") Long tenantId,
-                                      @RequestHeader("X-User-Id") Long userId) {
+                                      @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                      @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         meetingDTO.setTenantId(tenantId);
         return meetingService.createMeeting(meetingDTO);
     }
@@ -38,8 +38,8 @@ public class MeetingController {
     @Operation(summary = "更新会议", description = "更新会议信息")
     @PutMapping("/update")
     public Result<Void> updateMeeting(@Valid @RequestBody MeetingDTO meetingDTO,
-                                      @RequestHeader("X-Tenant-Id") Long tenantId,
-                                      @RequestHeader("X-User-Id") Long userId) {
+                                      @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                      @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         meetingDTO.setTenantId(tenantId);
         return meetingService.updateMeeting(meetingDTO);
     }
@@ -47,7 +47,7 @@ public class MeetingController {
     @Operation(summary = "删除会议", description = "删除指定会议")
     @DeleteMapping("/delete/{id}")
     public Result<Void> deleteMeeting(@Parameter(description = "会议ID") @PathVariable Long id,
-                                      @RequestHeader("X-Tenant-Id") Long tenantId) {
+                                      @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
         return meetingService.deleteMeeting(id, tenantId);
     }
     
@@ -61,7 +61,7 @@ public class MeetingController {
     @Operation(summary = "获取会议列表", description = "分页查询会议列表")
     @PostMapping("/list")
     public Result<PageResult<MeetingVO>> getMeetingList(@RequestBody MeetingQueryDTO queryDTO,
-                                                        @RequestHeader("X-Tenant-Id") Long tenantId) {
+                                                        @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
         queryDTO.setTenantId(tenantId);
         return meetingService.getMeetingList(queryDTO);
     }
@@ -70,16 +70,16 @@ public class MeetingController {
     @PutMapping("/cancel/{id}")
     public Result<Void> cancelMeeting(@Parameter(description = "会议ID") @PathVariable Long id,
                                       @RequestParam String reason,
-                                      @RequestHeader("X-Tenant-Id") Long tenantId,
-                                      @RequestHeader("X-User-Id") Long userId) {
+                                      @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                      @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         return meetingService.cancelMeeting(id, reason, tenantId, userId);
     }
     
     @Operation(summary = "发布会议", description = "发布指定会议")
     @PutMapping("/publish/{id}")
     public Result<Void> publishMeeting(@Parameter(description = "会议ID") @PathVariable Long id,
-                                       @RequestHeader("X-Tenant-Id") Long tenantId,
-                                       @RequestHeader("X-User-Id") Long userId) {
+                                       @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                       @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         return meetingService.publishMeeting(id, tenantId, userId);
     }
     
@@ -87,8 +87,8 @@ public class MeetingController {
     @PutMapping("/top/{id}")
     public Result<Void> topMeeting(@Parameter(description = "会议ID") @PathVariable Long id,
                                    @RequestParam Boolean isTop,
-                                   @RequestHeader("X-Tenant-Id") Long tenantId,
-                                   @RequestHeader("X-User-Id") Long userId) {
+                                   @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                   @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         return meetingService.topMeeting(id, isTop, tenantId, userId);
     }
 }

@@ -28,7 +28,7 @@ export const newsApi = {
     const headers = {};
     if (tenantId) headers['X-Tenant-Id'] = tenantId;
     if (userId) headers['X-User-Id'] = userId;
-
+    return request.post('/api/news', data, { headers })
     // 字段映射：前端 -> 后端
     const mappedData = {
       title: data.title,

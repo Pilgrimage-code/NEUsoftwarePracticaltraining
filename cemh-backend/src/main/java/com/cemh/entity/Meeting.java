@@ -24,16 +24,19 @@ public class Meeting extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "会议ID")
+    private Long id;
+
     @Schema(description = "会议标题")
     @TableField("title")
     @NotBlank(message = "会议标题不能为空")
     @Size(max = 200, message = "会议标题长度不能超过200个字符")
     private String title;
 
-    @Schema(description = "会议描述")
-    @TableField("description")
-    @Size(max = 2000, message = "会议描述长度不能超过2000个字符")
-    private String description;
+    @Schema(description = "会议备注")
+    @TableField("remark")
+    @Size(max = 2000, message = "会议备注长度不能超过2000个字符")
+    private String remark;
 
     @Schema(description = "会议类型（1：线上会议，2：线下会议，3：混合会议）")
     @TableField("meeting_type")
@@ -56,12 +59,8 @@ public class Meeting extends BaseEntity {
     @NotNull(message = "会议结束时间不能为空")
     private LocalDateTime endTime;
 
-    @Schema(description = "报名开始时间")
-    @TableField("registration_start_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime registrationStartTime;
 
-    @Schema(description = "报名结束时间")
+    @Schema(description = "报名截至时间")
     @TableField("registration_end_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime registrationEndTime;
@@ -98,18 +97,6 @@ public class Meeting extends BaseEntity {
     @TableField("organizer")
     private String organizer;
 
-    @Schema(description = "联系人")
-    @TableField("contact_person")
-    private String contactPerson;
-
-    @Schema(description = "联系电话")
-    @TableField("contact_phone")
-    private String contactPhone;
-
-    @Schema(description = "联系邮箱")
-    @TableField("contact_email")
-    private String contactEmail;
-
     @Schema(description = "会议链接（线上会议）")
     @TableField("meeting_link")
     private String meetingLink;
@@ -145,12 +132,12 @@ public class Meeting extends BaseEntity {
         this.title = title;
     }
 
-    public String getDescription() {
-        return description;
+    public String getRemark() {
+        return remark;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 
     public Integer getMeetingType() {
@@ -185,13 +172,6 @@ public class Meeting extends BaseEntity {
         this.endTime = endTime;
     }
 
-    public LocalDateTime getRegistrationStartTime() {
-        return registrationStartTime;
-    }
-
-    public void setRegistrationStartTime(LocalDateTime registrationStartTime) {
-        this.registrationStartTime = registrationStartTime;
-    }
 
     public LocalDateTime getRegistrationEndTime() {
         return registrationEndTime;
@@ -265,29 +245,6 @@ public class Meeting extends BaseEntity {
         this.organizer = organizer;
     }
 
-    public String getContactPerson() {
-        return contactPerson;
-    }
-
-    public void setContactPerson(String contactPerson) {
-        this.contactPerson = contactPerson;
-    }
-
-    public String getContactPhone() {
-        return contactPhone;
-    }
-
-    public void setContactPhone(String contactPhone) {
-        this.contactPhone = contactPhone;
-    }
-
-    public String getContactEmail() {
-        return contactEmail;
-    }
-
-    public void setContactEmail(String contactEmail) {
-        this.contactEmail = contactEmail;
-    }
 
     public String getMeetingLink() {
         return meetingLink;
@@ -322,15 +279,25 @@ public class Meeting extends BaseEntity {
     }
 
     @Override
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
     public String toString() {
         return "Meeting{" +
+                "id=" + id +
                 "title='" + title + '\'' +
-                ", description='" + description + '\'' +
+                ", remark='" + remark + '\'' +
                 ", meetingType=" + meetingType +
                 ", location='" + location + '\'' +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
-                ", registrationStartTime=" + registrationStartTime +
                 ", registrationEndTime=" + registrationEndTime +
                 ", maxParticipants=" + maxParticipants +
                 ", currentParticipants=" + currentParticipants +
@@ -338,14 +305,13 @@ public class Meeting extends BaseEntity {
                 ", status=" + status +
                 ", needApproval=" + needApproval +
                 ", coverImage='" + coverImage + '\'' +
+                ", content='" + content + '\'' +
                 ", organizer='" + organizer + '\'' +
-                ", contactPerson='" + contactPerson + '\'' +
-                ", contactPhone='" + contactPhone + '\'' +
-                ", contactEmail='" + contactEmail + '\'' +
                 ", meetingLink='" + meetingLink + '\'' +
+                ", meetingPassword='" + meetingPassword + '\'' +
                 ", isTop=" + isTop +
                 ", viewCount=" + viewCount +
-                "} " + super.toString();
+                '}';
     }
 }
 

@@ -17,8 +17,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${file.upload.path:D:/uploads}")
     private String uploadPath;
 
+<<<<<<< HEAD
     @Value("${file.upload.url-prefix:/files}")
     private String urlPrefix;
+=======
+        // 设置允许的源
+        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:5173" )); // 确保这里是前端的端口
+>>>>>>> 0423ffbbfd386bb8398442d65097936c421ca396
 
     /**
      * 配置CORS跨域
