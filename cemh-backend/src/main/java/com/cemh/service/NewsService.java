@@ -66,9 +66,12 @@ public interface NewsService {
      * @param title 标题（可选）
      * @param category 分类（可选）
      * @param status 状态（可选）
+     * @param author 作者（可选）
+     * @param summary 摘要（可选）
+     * @param content 内容（可选）
      * @return 资讯列表
      */
-    Result<PageResult<News>> getNewsList(int pageNum, int pageSize, Long tenantId, String title, String category, Integer status);
+    Result<PageResult<News>> getNewsList(int pageNum, int pageSize, Long tenantId, String title, String category, Integer status, String author, String summary, String content);
     
     /**
      * 置顶资讯
@@ -170,8 +173,11 @@ public interface NewsService {
      * @param title 标题
      * @param category 分类
      * @param status 状态
+     * @param author 作者
+     * @param summary 摘要
+     * @param content 内容
      * @return 分页结果
      */
-    PageResult<News> getNewsPage(int pageNum, int pageSize, Long tenantId, String title, String category, Integer status);
+    PageResult<News> getNewsPage(int pageNum, int pageSize, Long tenantId, String title, String category, Integer status, String author, String summary, String content);
 }
 

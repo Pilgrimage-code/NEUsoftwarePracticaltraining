@@ -162,9 +162,9 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public Result<PageResult<News>> getNewsList(int pageNum, int pageSize, Long tenantId, String title, String category, Integer status) {
+    public Result<PageResult<News>> getNewsList(int pageNum, int pageSize, Long tenantId, String title, String category, Integer status, String author, String summary, String content) {
         try {
-            PageResult<News> pageResult = getNewsPage(pageNum, pageSize, tenantId, title, category, status);
+            PageResult<News> pageResult = getNewsPage(pageNum, pageSize, tenantId, title, category, status, author, summary, content);
             return Result.success(pageResult);
         } catch (Exception e) {
             return Result.error("获取资讯列表失败：" + e.getMessage());
@@ -430,8 +430,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public PageResult<News> getNewsPage(int pageNum, int pageSize, Long tenantId, String title,
-                                        String category, Integer status) {
+    public PageResult<News> getNewsPage(int pageNum, int pageSize, Long tenantId, String title, String category, Integer status, String author, String summary, String content) {
         Page<News> page = new Page<>(pageNum, pageSize);
         QueryWrapper<News> queryWrapper = new QueryWrapper<>();
         if (tenantId != null) {
@@ -447,6 +446,15 @@ public class NewsServiceImpl implements NewsService {
         }
         if (status != null) {
             queryWrapper.eq("status", status);
+        }
+        if (author != null && !author.trim().isEmpty()) {
+            queryWrapper.like("author", author);
+        }
+        if (summary != null && !summary.trim().isEmpty()) {
+            queryWrapper.like("summary", summary);
+        }
+        if (content != null && !content.trim().isEmpty()) {
+            queryWrapper.like("content", content);
         }
 
         queryWrapper.orderByDesc("is_top", "create_time");
