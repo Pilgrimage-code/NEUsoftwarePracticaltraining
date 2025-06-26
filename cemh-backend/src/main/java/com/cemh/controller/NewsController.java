@@ -33,8 +33,11 @@ public class NewsController {
                                                 @RequestParam(required = false) String title,
                                                 @RequestParam(required = false) String category,
                                                 @RequestParam(required = false) Integer status,
+                                                @RequestParam(required = false) String author,
+                                                @RequestParam(required = false) String summary,
+                                                @RequestParam(required = false) String content,
                                                 @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
-        return newsService.getNewsList(page, size, tenantId, title, category, status);
+        return newsService.getNewsList(page, size, tenantId, title, category, status, author, summary, content);
     }
     
     @Operation(summary = "获取资讯详情", description = "根据ID获取资讯详细信息")

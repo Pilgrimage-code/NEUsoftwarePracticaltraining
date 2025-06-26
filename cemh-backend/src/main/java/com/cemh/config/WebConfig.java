@@ -25,7 +25,7 @@ public class WebConfig implements WebMvcConfigurer {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
         // 设置允许的源
-        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:5179" )); // 确保这里是前端的端口
+        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:5173" )); // 确保这里是前端的端口
 
         // 设置允许的请求方法
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
