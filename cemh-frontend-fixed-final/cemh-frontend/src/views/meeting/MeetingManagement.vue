@@ -119,6 +119,7 @@
           <template #default="{ row }">
             <div class="meeting-title">
               <h4>{{ row.title }}</h4>
+              <!-- 显示置顶标识 -->
               <el-tag v-if="row.isTop" type="danger" size="small">置顶</el-tag>
             </div>
           </template>
@@ -240,6 +241,7 @@
             <div class="card-content">
               <h3 class="meeting-title">
                 {{ meeting.title }}
+                <!-- 显示置顶标识 -->
                 <el-tag v-if="meeting.isTop" type="danger" size="small">置顶</el-tag>
               </h3>
               
@@ -375,6 +377,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { meetingApi } from '../../api/meeting'
 
 const router = useRouter()
 
@@ -386,6 +389,9 @@ const meetingList = ref([])
 const currentMeeting = ref(null)
 const selectedMeetings = ref([])
 const total = ref(0)
+const meetingFormRef = ref(null)
+const dialogVisible = ref(false)
+const dialogTitle = ref('')
 
 // 搜索表单
 const searchForm = reactive({
@@ -401,69 +407,68 @@ const pagination = reactive({
   size: 20
 })
 
+// 会议表单
+const meetingForm = reactive({
+  id: null,
+  title: '',
+  description: '',
+  type: '',
+  status: 'draft',
+  startTime: null,
+  endTime: null,
+  location: '',
+  maxParticipants: null,
+  registrationDeadline: null,
+  requiresApproval: false,
+  fee: 0,
+  requirements: '',
+  tags: [],
+  coverImage: '',
+  remarks: '',
+  tenantId: localStorage.getItem('tenantId'),
+  userId: localStorage.getItem('userId')
+})
+
+// 表单验证规则
+const meetingFormRules = {
+  title: [
+    { required: true, message: '会议标题不能为空', trigger: 'blur' },
+    { min: 1, max: 100, message: '标题长度在 1 到 100 个字符', trigger: 'blur' }
+  ],
+  type: [
+    { required: true, message: '会议类型不能为空', trigger: 'change' }
+  ],
+  startTime: [
+    { required: true, message: '开始时间不能为空', trigger: 'change' }
+  ],
+  endTime: [
+    { required: true, message: '结束时间不能为空', trigger: 'change' }
+  ],
+  coverImage: [
+    { required: true, message: '会议封面图片不能为空', trigger: 'change' }
+  ]
+}
+
 // 加载会议列表
 const loadMeetingList = async () => {
   loading.value = true
   try {
+    const params = {
+      page: pagination.page,
+      size: pagination.size,
+      ...searchForm
+    }
     // 模拟API调用
     await new Promise(resolve => setTimeout(resolve, 500))
     
-    // 模拟数据
-    meetingList.value = [
-      {
-        id: 1,
-        title: '2024年度技术交流大会',
-        type: 1,
-        status: 1,
-        startTime: '2024-06-20T09:00:00',
-        endTime: '2024-06-20T17:00:00',
-        location: '北京国际会议中心',
-        description: '本次大会将邀请行业专家分享最新技术趋势和实践经验。',
-        agenda: '09:00-09:30 签到\n09:30-10:30 主题演讲\n10:30-12:00 技术分享',
-        registrationDeadline: '2024-06-18T23:59:59',
-        maxParticipants: 200,
-        registrationCount: 156,
-        isTop: 1,
-        creatorName: '张三',
-        createTime: '2024-06-10T10:00:00'
-      },
-      {
-        id: 2,
-        title: '产品发布会',
-        type: 2,
-        status: 1,
-        startTime: '2024-06-22T14:00:00',
-        endTime: '2024-06-22T16:00:00',
-        location: '上海展览中心',
-        description: '发布我们最新的产品功能和特性。',
-        agenda: '14:00-14:30 产品介绍\n14:30-15:30 功能演示\n15:30-16:00 Q&A',
-        registrationDeadline: '2024-06-21T12:00:00',
-        maxParticipants: 100,
-        registrationCount: 89,
-        isTop: 0,
-        creatorName: '李四',
-        createTime: '2024-06-12T15:30:00'
-      },
-      {
-        id: 3,
-        title: '培训课程：项目管理实践',
-        type: 3,
-        status: 0,
-        startTime: '2024-06-25T10:00:00',
-        endTime: '2024-06-25T16:00:00',
-        location: '在线会议',
-        description: '深入学习项目管理的理论和实践方法。',
-        agenda: '10:00-12:00 理论讲解\n14:00-16:00 案例分析',
-        registrationDeadline: '2024-06-24T18:00:00',
-        maxParticipants: 50,
-        registrationCount: 23,
-        isTop: 0,
-        creatorName: '王五',
-        createTime: '2024-06-14T09:15:00'
-      }
-    ]
+    const response = await meetingApi.getMeetingList(params, localStorage.getItem('tenantId')) 
     
-    total.value = 3
+    if(response.code == 200) {
+      meetingList.value = response.data.records || []
+      total.value = response.data.total || 0
+    } else {
+      ElMessage.error(response.message || '加载会议列表失败');
+    }
   } catch (error) {
     ElMessage.error('加载会议列表失败')
     console.error(error)
@@ -480,11 +485,40 @@ const handleSearch = () => {
 
 // 重置搜索
 const handleReset = () => {
-  Object.keys(searchForm).forEach(key => {
-    searchForm[key] = key === 'dateRange' ? null : ''
+  Object.assign(searchForm, {
+    title: '',
+    type: null,
+    status: null,
+    dateRange: null
   })
   pagination.page = 1
   loadMeetingList()
+}
+
+// 新增会议
+const handleAdd = () => {
+  dialogTitle.value = '新增会议'
+  Object.assign(meetingForm, {
+    id: null,
+    title: '',
+    description: '',
+    type: '',
+    status: 'draft',
+    startTime: null,
+    endTime: null,
+    location: '',
+    maxParticipants: null,
+    registrationDeadline: null,
+    requiresApproval: false,
+    fee: 0,
+    requirements: '',
+    tags: [],
+    coverImage: '',
+    remarks: '',
+    tenantId: localStorage.getItem('tenantId'),
+    userId: localStorage.getItem('userId')
+  })
+  dialogVisible.value = true
 }
 
 // 分页处理
@@ -555,6 +589,36 @@ const handleAction = async (command, meeting) => {
   }
 }
 
+// 提交表单
+const handleSubmit = async () => {
+  if (!meetingFormRef.value) return
+
+  try {
+    await meetingFormRef.value.validate()
+    submitLoading.value = true
+
+    let response
+    if (meetingForm.id) {
+      response = await meetingApi.updateMeeting(meetingForm.id, meetingForm)
+    } else {
+      response = await meetingApi.createMeeting(meetingForm)
+    }
+
+    if (response.code === 200) {
+      ElMessage.success(meetingForm.id ? '修改成功' : '创建成功')
+      dialogVisible.value = false
+      loadMeetingList()
+    } else {
+      ElMessage.error(response.message || (meetingForm.id ? '修改失败' : '创建失败'))
+    }
+  } catch (error) {
+    console.error('提交失败:', error)
+    ElMessage.error(meetingForm.id ? '修改失败' : '创建失败')
+  } finally {
+    submitLoading.value = false
+  }
+}
+
 // 发布会议
 const handlePublish = async (id) => {
   try {
@@ -570,6 +634,7 @@ const handlePublish = async (id) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('发布失败')
+  
     }
   }
 }
@@ -596,12 +661,29 @@ const handleCancel = async (id) => {
 // 设置置顶
 const handleSetTop = async (id, isTop) => {
   try {
-    // 模拟API调用
-    const action = isTop ? '置顶' : '取消置顶'
-    ElMessage.success(`${action}成功`)
-    loadMeetingList()
+    await ElMessageBox.confirm(
+      isTop ? '确认将该会议置顶吗？' : '确认取消该会议置顶吗？',
+      '提示',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+
+    const response = await meetingApi.topMeeting(id, isTop);
+    if (response.code === 200) {
+      const action = isTop ? '置顶' : '取消置顶';
+      ElMessage.success(`${action}成功`);
+      loadMeetingList();
+    } else {
+      ElMessage.error(response.message || `${action}失败`);
+    }
   } catch (error) {
-    ElMessage.error('操作失败')
+    if (error !== 'cancel') {
+      const action = isTop ? '置顶' : '取消置顶';
+      ElMessage.error(`${action}失败`);
+    }
   }
 }
 
@@ -625,9 +707,13 @@ const handleDelete = async (id) => {
       type: 'error'
     })
     
-    // 模拟API调用
-    ElMessage.success('会议删除成功')
-    loadMeetingList()
+    const response = await meetingApi.deleteMeeting(id)
+    if(response.code == 200) {
+      ElMessage.success('会议删除成功')
+      loadMeetingList()
+    } else {
+      ElMessage.error(response.message || '删除失败')
+    }
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')

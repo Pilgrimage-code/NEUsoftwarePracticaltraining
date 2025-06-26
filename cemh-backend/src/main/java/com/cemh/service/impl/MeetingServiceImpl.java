@@ -100,10 +100,10 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-            // 检查租户权限
-            if (!meeting.getTenantId().equals(tenantId)) {
-                return Result.error("无权限删除此会议");
-            }
+//            // 检查租户权限
+//            if (!meeting.getTenantId().equals(tenantId)) {
+//                return Result.error("无权限删除此会议");
+//            }
             
             // 删除会议
             int result = meetingMapper.deleteById(id);
@@ -190,14 +190,16 @@ public class MeetingServiceImpl implements MeetingService {
             if (queryDTO.getCreateTimeEnd() != null) {
                 queryWrapper.le(Meeting::getCreateTime, queryDTO.getCreateTimeEnd());
             }
-            
-            // 排序
+
+            // 先按创建时间排序，再按置顶状态降序排序
+
             if ("asc".equals(queryDTO.getSortOrder())) {
                 queryWrapper.orderByAsc(Meeting::getCreateTime);
             } else {
                 queryWrapper.orderByDesc(Meeting::getCreateTime);
             }
-            
+            queryWrapper.orderByDesc(Meeting::getIsTop);
+
             // 分页查询
             Page<Meeting> page = new Page<>(queryDTO.getPage(), queryDTO.getSize());
             IPage<Meeting> meetingPage = meetingMapper.selectPage(page, queryWrapper);
@@ -291,10 +293,10 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-            // 检查租户权限
-            if (!meeting.getTenantId().equals(tenantId)) {
-                return Result.error("无权限操作此会议");
-            }
+//            // 检查租户权限
+//            if (!meeting.getTenantId().equals(tenantId)) {
+//                return Result.error("无权限操作此会议");
+//            }
             
             // 更新置顶状态
             meeting.setIsTop(isTop ? 1 : 0);

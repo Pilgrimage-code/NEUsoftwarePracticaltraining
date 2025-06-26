@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cemh.entity.Meeting;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +22,7 @@ public interface MeetingMapper extends BaseMapper<Meeting> {
     /**
      * 分页查询会议列表
      */
-    @Select("SELECT m.*, u.nickname as creator_name, d.name as dept_name " +
+    @Select("SELECT m.*, u.nickname as creator_name, d.dept_name as dept_name " +
             "FROM meeting m " +
             "LEFT JOIN sys_user u ON m.creator_id = u.id " +
             "LEFT JOIN sys_dept d ON m.dept_id = d.id " +
@@ -103,5 +100,32 @@ public interface MeetingMapper extends BaseMapper<Meeting> {
             "ORDER BY registration_count DESC, m.create_time DESC " +
             "LIMIT #{limit}")
     List<Meeting> selectPopularMeetings(@Param("tenantId") Long tenantId, @Param("limit") Integer limit);
+
+    /**
+     * 根据ID删除会议
+     * @param id 会议ID
+     * @return 删除成功的记录数
+     */
+    @Delete("DELETE FROM meeting WHERE id = #{id}")
+    int deleteById(@Param("id") Long id);
+
+
+    /**
+     * 插入会议记录
+     * @param meeting 会议实体
+     * @return 插入成功的记录数
+     */
+    @Insert("INSERT INTO meeting (" +
+            "title, remark, meeting_type, location, start_time, end_time, " +
+            "registration_end_time, max_participants, current_participants, " +
+            "fee, status, need_approval, cover_image, content, organizer" +
+            ") VALUES (" +
+            "#{title}, #{remark}, #{meetingType}, #{location}, #{startTime}, #{endTime}, " +
+            "#{registrationEndTime}, #{maxParticipants}, #{currentParticipants}, " +
+            "#{fee}, #{status}, #{needApproval}, #{coverImage}, #{content}, #{organizer}, " +
+            ")")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    int insert(Meeting meeting);
+
 }
 
