@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -24,34 +25,40 @@ public class RedisConfig {
     /**
      * 配置RedisTemplate
      * 
-     * @param connectionFactory Redis连接工厂
+     * @param factory Redis连接工厂
      * @return RedisTemplate
      */
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-
+        template.setConnectionFactory(factory);
+        
         // 使用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
-
+        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        ObjectMapper mapper = new ObjectMapper();
+        
+        // 指定要序列化的域，field,get和set,以及修饰符范围，ANY是都有包括private和public
+        mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        
+        // 指定序列化输入的类型，类必须是非final修饰的
+        mapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, 
+                ObjectMapper.DefaultTyping.NON_FINAL);
+        
+        // 添加JavaTimeModule来支持Java8日期时间类型
+        mapper.registerModule(new JavaTimeModule());
+        
+        serializer.setObjectMapper(mapper);
+        
+        // 值采用json序列化
+        template.setValueSerializer(serializer);
         // 使用StringRedisSerializer来序列化和反序列化redis的key值
-        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
-
-        // 设置key和value的序列化规则
-        template.setKeySerializer(stringRedisSerializer);
-        template.setValueSerializer(jackson2JsonRedisSerializer);
-        template.setHashKeySerializer(stringRedisSerializer);
-        template.setHashValueSerializer(jackson2JsonRedisSerializer);
-
-        // 设置支持事务
-        template.setEnableTransactionSupport(true);
+        template.setKeySerializer(new StringRedisSerializer());
+        
+        // 设置hash key 和value序列化模式
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(serializer);
         template.afterPropertiesSet();
-
+        
         return template;
     }
 }

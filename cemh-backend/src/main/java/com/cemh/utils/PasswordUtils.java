@@ -44,27 +44,8 @@ public class PasswordUtils {
         if (rawPassword == null || encodedPassword == null) {
             return false;
         }
-        
-        // 方式1：如果数据库中是明文密码，直接比较
-        if (rawPassword.equals(encodedPassword)) {
-            return true;
-        }
-        
-        // 方式2：如果数据库中是MD5加密密码，先加密再比较
-        String encodedInput = encode(rawPassword);
-        if (encodedInput.equals(encodedPassword)) {
-            return true;
-        }
-        
-        // 方式3：兼容BCrypt格式（如果数据库中还有BCrypt密码）
-        if (encodedPassword.startsWith("$2a$") || encodedPassword.startsWith("$2b$")) {
-            // 对于BCrypt格式的密码，我们可以选择：
-            // 1. 直接返回false，强制用户重置密码
-            // 2. 或者保留BCrypt验证逻辑
-            return false; // 简单处理：BCrypt密码需要重置
-        }
-        
-        return false;
+        // 暂时使用明文比较，后续需要改为加密比较
+        return rawPassword.equals(encodedPassword);
     }
     
     /**

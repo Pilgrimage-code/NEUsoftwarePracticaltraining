@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Tag(name = "认证管理", description = "用户登录、注册、退出等认证相关接口")
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
 

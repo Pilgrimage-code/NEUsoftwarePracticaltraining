@@ -34,20 +34,20 @@ public abstract class BaseEntity implements Serializable {
     private LocalDateTime updateTime;
 
     @Schema(description = "创建人ID")
-    @TableField(value = "create_by", fill = FieldFill.INSERT)
+    @TableField(value = "create_by", exist = false, fill = FieldFill.INSERT)
     private Long createBy;
 
     @Schema(description = "更新人ID")
-    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "update_by", exist = false, fill = FieldFill.INSERT_UPDATE)
     private Long updateBy;
-
+    
     @Schema(description = "是否删除（0：未删除，1：已删除）")
     @TableField(value = "deleted")
     @TableLogic
     private Integer deleted;
 
     @Schema(description = "租户ID")
-    @TableField(value = "tenant_id")
+    @TableField(value = "tenant_id", exist = false)
     private Long tenantId;
 
     @Schema(description = "备注")

@@ -17,7 +17,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/cemh_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
     username: root
-    password: Shao2005!
+    password: hyx123456
     druid:
       # 初始连接数
       initial-size: 5
@@ -82,7 +82,7 @@ spring:
   # 文件上传配置
   servlet:
     multipart:
-      max-file-size: 100MB
+      max-file-size: 50MB
       max-request-size: 100MB
       enabled: true
 
@@ -161,8 +161,7 @@ cemh:
 # 文件上传配置
 file:
   upload:
-    # 文件上传路径
-    path: E:/temp/uploads
-    # 访问URL前缀
-    url-prefix: http://localhost:8080/uploads
+    path: D:/uploads
+    url-prefix: ${FILE_URL_PREFIX:/files}
+    max-size: 50MB
 

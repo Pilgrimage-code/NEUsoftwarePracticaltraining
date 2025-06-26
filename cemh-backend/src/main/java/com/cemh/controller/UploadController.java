@@ -1,20 +1,18 @@
 package com.cemh.controller;
 
 import com.cemh.common.Result;
+import com.cemh.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * 文件上传控制器
@@ -24,118 +22,105 @@ import java.util.UUID;
 @RequestMapping("/api/upload")
 @CrossOrigin(origins = "*")
 public class UploadController {
-
-    @Value("${file.upload.path:/tmp/uploads}")
-    private String uploadPath;
-
-    @Value("${file.upload.url-prefix:http://localhost:8080/uploads}")
-    private String urlPrefix;
-
-    @Operation(summary = "上传图片", description = "上传图片文件")
+    
+    private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
+    
+    @Operation(summary = "上传图片")
     @PostMapping("/image")
-    public Result<Map<String, Object>> uploadImage(
-            @Parameter(description = "图片文件") @RequestParam("file") MultipartFile file) {
-        
-        if (file.isEmpty()) {
-            return Result.error("请选择要上传的文件");
-        }
-
-        // 检查文件类型
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            return Result.error("只能上传图片文件");
-        }
-
-        // 检查文件大小（2MB）
-        if (file.getSize() > 2 * 1024 * 1024) {
-            return Result.error("文件大小不能超过2MB");
-        }
-
+    public Result<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
-            // 创建上传目录
-            File uploadDir = new File(uploadPath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-
-            // 生成文件名
-            String originalFilename = file.getOriginalFilename();
-            String extension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            }
+            logger.info("上传图片: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
+            String filePath = FileUtils.saveFile(file, "image");
             
-            String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String filename = dateStr + "_" + UUID.randomUUID().toString() + extension;
+            Map<String, String> data = new HashMap<>();
+            data.put("url", filePath);
+            data.put("name", file.getOriginalFilename());
+            data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
             
-            // 保存文件
-            File destFile = new File(uploadDir, filename);
-            file.transferTo(destFile);
-
-            // 返回文件信息
-            Map<String, Object> result = new HashMap<>();
-            result.put("filename", filename);
-            result.put("originalName", originalFilename);
-            result.put("size", file.getSize());
-            result.put("url", urlPrefix + "/" + filename);
-            
-            return Result.success(result);
-            
+            return Result.success(data);
         } catch (IOException e) {
-            e.printStackTrace();
-            return Result.error("文件上传失败：" + e.getMessage());
+            logger.error("上传图片失败", e);
+            return Result.error("上传图片失败: " + e.getMessage());
         }
     }
-
-    @Operation(summary = "上传文件", description = "上传任意类型文件")
-    @PostMapping("/file")
-    public Result<Map<String, Object>> uploadFile(
-            @Parameter(description = "文件") @RequestParam("file") MultipartFile file) {
-        
-        if (file.isEmpty()) {
-            return Result.error("请选择要上传的文件");
-        }
-
-        // 检查文件大小（10MB）
-        if (file.getSize() > 10 * 1024 * 1024) {
-            return Result.error("文件大小不能超过10MB");
-        }
-
+    
+    @Operation(summary = "上传视频")
+    @PostMapping("/video")
+    public Result<Map<String, String>> uploadVideo(@RequestParam("file") MultipartFile file) {
         try {
-            // 创建上传目录
-            File uploadDir = new File(uploadPath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-
-            // 生成文件名
-            String originalFilename = file.getOriginalFilename();
-            String extension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            }
+            logger.info("上传视频: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
+            String filePath = FileUtils.saveFile(file, "video");
             
-            String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String filename = dateStr + "_" + UUID.randomUUID().toString() + extension;
+            Map<String, String> data = new HashMap<>();
+            data.put("url", filePath);
+            data.put("name", file.getOriginalFilename());
+            data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
             
-            // 保存文件
-            File destFile = new File(uploadDir, filename);
-            file.transferTo(destFile);
-
-            // 返回文件信息
-            Map<String, Object> result = new HashMap<>();
-            result.put("filename", filename);
-            result.put("originalName", originalFilename);
-            result.put("size", file.getSize());
-            result.put("contentType", file.getContentType());
-            result.put("url", urlPrefix + "/" + filename);
-            
-            return Result.success(result);
-            
+            return Result.success(data);
         } catch (IOException e) {
-            e.printStackTrace();
-            return Result.error("文件上传失败：" + e.getMessage());
+            logger.error("上传视频失败", e);
+            return Result.error("上传视频失败: " + e.getMessage());
         }
+    }
+    
+    @Operation(summary = "上传文档")
+    @PostMapping("/document")
+    public Result<Map<String, String>> uploadDocument(@RequestParam("file") MultipartFile file) {
+        try {
+            logger.info("上传文档: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
+            String filePath = FileUtils.saveFile(file, "document");
+            
+            Map<String, String> data = new HashMap<>();
+            data.put("url", filePath);
+            data.put("name", file.getOriginalFilename());
+            data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
+            
+            return Result.success(data);
+        } catch (IOException e) {
+            logger.error("上传文档失败", e);
+            return Result.error("上传文档失败: " + e.getMessage());
+        }
+    }
+    
+    @Operation(summary = "上传其他文件")
+    @PostMapping("/file")
+    public Result<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            logger.info("上传文件: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
+            String filePath = FileUtils.saveFile(file, "other");
+            
+            Map<String, String> data = new HashMap<>();
+            data.put("url", filePath);
+            data.put("name", file.getOriginalFilename());
+            data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
+            
+            return Result.success(data);
+        } catch (IOException e) {
+            logger.error("上传文件失败", e);
+            return Result.error("上传文件失败: " + e.getMessage());
+        }
+    }
+    
+    @Operation(summary = "删除文件")
+    @DeleteMapping("/file")
+    public Result<Void> deleteFile(@RequestBody DeleteFileRequest request) {
+        if (request.getUrl() == null || request.getUrl().isEmpty()) {
+            return Result.error("文件路径不能为空");
+        }
+        
+        logger.info("删除文件: {}", request.getUrl());
+        boolean success = FileUtils.deleteFile(request.getUrl());
+        
+        if (success) {
+            return Result.success();
+        } else {
+            return Result.error("删除文件失败");
+        }
+    }
+    
+    @Data
+    public static class DeleteFileRequest {
+        private String url;
     }
 }
 

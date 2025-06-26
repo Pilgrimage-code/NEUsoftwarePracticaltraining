@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cemh.mapper.CourseMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.cemh.entity.Course">
+        <id column="id" property="id" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="category_id" property="categoryId" />
+        <result column="course_code" property="courseCode" />
+        <result column="course_name" property="courseName" />
+        <result column="course_intro" property="courseIntro" />
+        <result column="course_author" property="courseAuthor" />
+        <result column="course_order" property="courseOrder" />
+        <result column="description" property="description" />
+        <result column="cover_image" property="coverImage" />
+        <result column="video_url" property="videoUrl" />
+        <result column="instructor" property="instructor" />
+        <result column="duration" property="duration" />
+        <result column="difficulty" property="difficulty" />
+        <result column="price" property="price" />
+        <result column="max_students" property="maxStudents" />
+        <result column="current_students" property="currentStudents" />
+        <result column="view_count" property="viewCount" />
+        <result column="rating" property="rating" />
+        <result column="rating_count" property="ratingCount" />
+        <result column="status" property="status" />
+        <result column="is_free" property="isFree" />
+        <result column="is_hot" property="isHot" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="create_by" property="createBy" />
+        <result column="update_by" property="updateBy" />
+        <result column="deleted" property="deleted" />
+        <result column="remark" property="remark" />
+    </resultMap>
+
+    <!-- 分页查询课程列表 -->
+    <select id="selectCoursePage" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM course c
+        WHERE 1=1
+        <if test="tenantId != null">
+            AND c.tenant_id = #{tenantId}
+        </if>
+        <if test="courseName != null and courseName != ''">
+            AND c.course_name LIKE CONCAT('%', #{courseName}, '%')
+        </if>
+        <if test="courseOrder != null">
+            AND c.course_order = #{courseOrder}
+        </if>
+        <if test="courseAuthor != null and courseAuthor != ''">
+            AND c.course_author LIKE CONCAT('%', #{courseAuthor}, '%')
+        </if>
+        <if test="status != null">
+            AND c.status = #{status}
+        </if>
+        <if test="categoryId != null">
+            AND c.category_id = #{categoryId}
+        </if>
+        AND c.deleted = 0
+        ORDER BY c.course_order ASC, c.is_hot DESC, c.view_count DESC, c.create_time DESC
+    </select>
+
+    <!-- 获取课程详情 -->
+    <select id="selectCourseDetail" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM course c
+        WHERE c.id = #{id}
+        <if test="tenantId != null">
+            AND c.tenant_id = #{tenantId}
+        </if>
+        AND c.deleted = 0
+    </select>
+
+    <!-- 查询热门课程 -->
+    <select id="selectHotCourses" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM course c
+        WHERE c.deleted = 0 AND c.status = 1
+        ORDER BY c.is_hot DESC, c.view_count DESC, c.rating DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 查询最新课程 -->
+    <select id="selectLatestCourses" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM course c
+        WHERE c.deleted = 0 AND c.status = 1
+        ORDER BY c.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 查询课程统计信息 -->
+    <select id="selectCourseStatistics" resultType="java.util.Map">
+        SELECT
+            COUNT(*) AS totalCourses,
+            SUM(CASE WHEN c.status = 1 THEN 1 ELSE 0 END) AS activeCourses,
+            SUM(c.view_count) AS totalViews,
+            AVG(c.view_count) AS avgViews,
+            SUM(c.current_students) AS totalStudents,
+            AVG(c.rating) AS avgRating
+        FROM course c
+        WHERE c.deleted = 0
+        <if test="tenantId != null">
+            AND c.tenant_id = #{tenantId}
+        </if>
+    </select>
+
+    <!-- 增加课程浏览次数 -->
+    <update id="incrementViewCount">
+        UPDATE course
+        SET view_count = view_count + 1
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <!-- 导出课程列表 -->
+    <select id="selectCourseExport" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM course c
+        WHERE c.deleted = 0
+        <if test="tenantId != null">
+            AND c.tenant_id = #{tenantId}
+        </if>
+        <if test="courseName != null and courseName != ''">
+            AND c.course_name LIKE CONCAT('%', #{courseName}, '%')
+        </if>
+        <if test="courseOrder != null">
+            AND c.course_order = #{courseOrder}
+        </if>
+        ORDER BY c.is_hot DESC, c.view_count DESC, c.create_time DESC
+    </select>
+
+</mapper> 

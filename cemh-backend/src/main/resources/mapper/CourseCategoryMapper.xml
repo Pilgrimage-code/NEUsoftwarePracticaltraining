@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cemh.mapper.CourseCategoryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.cemh.entity.CourseCategory">
+        <id column="id" property="id" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="parent_id" property="parentId" />
+        <result column="category_name" property="categoryName" />
+        <result column="category_code" property="categoryCode" />
+        <result column="description" property="description" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="create_by" property="createBy" />
+        <result column="update_by" property="updateBy" />
+        <result column="deleted" property="deleted" />
+        <result column="remark" property="remark" />
+    </resultMap>
+
+    <!-- 查询课程分类列表 -->
+    <select id="selectCategoryList" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM course_category c
+        WHERE c.deleted = 0
+        <if test="tenantId != null">
+            AND c.tenant_id = #{tenantId}
+        </if>
+        ORDER BY c.sort_order ASC
+    </select>
+
+    <!-- 查询分类树 -->
+    <select id="selectCategoryTree" resultType="java.util.Map">
+        SELECT
+            c.id,
+            c.parent_id AS parentId,
+            c.category_name AS label,
+            c.category_code AS code,
+            c.sort_order AS sortOrder,
+            c.status,
+            CASE WHEN COUNT(child.id) > 0 THEN true ELSE false END AS hasChildren
+        FROM course_category c
+        LEFT JOIN course_category child ON c.id = child.parent_id AND child.deleted = 0
+        WHERE c.deleted = 0
+        <if test="tenantId != null">
+            AND c.tenant_id = #{tenantId}
+        </if>
+        GROUP BY c.id
+        ORDER BY c.parent_id ASC, c.sort_order ASC
+    </select>
+
+    <!-- 查询子分类ID列表 -->
+    <select id="selectChildIds" resultType="java.lang.Long">
+        WITH RECURSIVE cte AS (
+            SELECT id FROM course_category WHERE parent_id = #{parentId} AND deleted = 0
+            UNION ALL
+            SELECT c.id FROM course_category c JOIN cte ON c.parent_id = cte.id WHERE c.deleted = 0
+        )
+        SELECT id FROM cte
+    </select>
+
+</mapper> 
