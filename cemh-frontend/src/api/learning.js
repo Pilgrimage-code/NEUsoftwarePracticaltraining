@@ -31,12 +31,21 @@ export function getLearningStats(userId) {
 
 // 更新学习进度
 export function updateProgress(data) {
+  // 确保progress是有效的整数
+  let progress = data.progress;
+  if (isNaN(progress) || progress === null || progress === undefined) {
+    console.warn('API调用中发现无效的进度值，使用默认值0');
+    progress = 0;
+  } else {
+    progress = Math.max(0, Math.min(100, Math.round(progress)));
+  }
+  
   return request({
     url: `/api/learning-records/progress`,
     method: 'put',
     params: {
       courseId: data.courseId,
-      progress: data.progress,
+      progress: progress,
       chapterId: data.chapterId
     },
     headers: {

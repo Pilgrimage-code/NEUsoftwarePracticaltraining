@@ -210,6 +210,12 @@ const routes = [
         component: () => import('@/views/course/LearningRecords.vue'),
         meta: { title: '学习记录' }
       },
+      {
+        path: 'learning-detail/:courseId',
+        name: 'LearningDetail',
+        component: () => import('@/views/course/LearningDetail.vue'),
+        meta: { title: '学习详情' }
+      },
       // 统计分析路由
       {
         path: 'statistics',

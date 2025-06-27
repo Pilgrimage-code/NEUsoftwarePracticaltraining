@@ -86,21 +86,47 @@ public class UploadController {
     
     @Operation(summary = "上传视频")
     @PostMapping("/video")
-    public Result<Map<String, String>> uploadVideo(@RequestParam("file") MultipartFile file) {
+    public Result<Map<String, Object>> uploadVideo(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return Result.error("请选择要上传的文件");
+        }
+        // 检查文件类型
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("video/")) {
+            return Result.error("只能上传视频文件");
+        }
+        // 检查文件大小（50MB）
+        if (file.getSize() > 50 * 1024 * 1024) {
+            return Result.error("文件大小不能超过50MB");
+        }
         try {
-            logger.info("上传视频: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
-            String filePath = FileUtils.saveFile(file, "video");
-            String url = buildFullUrl(filePath);
-            
-            Map<String, String> data = new HashMap<>();
-            data.put("url", url);
-            data.put("name", file.getOriginalFilename());
-            data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
-            
-            return Result.success(data);
+            // 创建上传目录
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+            // 生成文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String dateStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String filename = dateStr + "_" + java.util.UUID.randomUUID().toString() + extension;
+            // 保存文件
+            File destFile = new File(uploadDir, filename);
+            file.transferTo(destFile);
+            // 返回文件信息
+            Map<String, Object> result = new HashMap<>();
+            result.put("filename", filename);
+            result.put("originalName", originalFilename);
+            result.put("size", file.getSize());
+            result.put("url", urlPrefix + "/" + filename);
+            logger.info("视频已上传: {}", urlPrefix + "/" + filename);
+            return Result.success(result);
         } catch (IOException e) {
             logger.error("上传视频失败", e);
-            return Result.error("上传视频失败: " + e.getMessage());
+            return Result.error("视频上传失败：" + e.getMessage());
         }
     }
     

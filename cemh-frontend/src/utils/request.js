@@ -106,20 +106,25 @@ service.interceptors.response.use(
     
     // 检查是否是网络错误
     if (!response) {
-      ElMessage({
-        message: '网络连接异常，请检查您的网络连接',
-        type: 'error',
-        duration: 5000
-      })
+      console.log('网络连接异常，请检查您的网络连接')
       return Promise.reject(error)
     }
     
-    const errMsg = response.data?.message || error.message || '未知错误'
-    ElMessage({
-      message: errMsg,
-      type: 'error',
-      duration: 5000
-    })
+    // 如果是视频资源请求，不显示错误消息
+    const url = error.config?.url || '';
+    const isVideoRequest = url.includes('/uploads/') && 
+                         (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg'));
+    
+    if (!isVideoRequest) {
+      const errMsg = response.data?.message || error.message || '未知错误'
+      ElMessage({
+        message: errMsg,
+        type: 'error',
+        duration: 5000
+      })
+    } else {
+      console.log('视频资源加载失败，但不显示错误消息:', url)
+    }
     
     // 如果是未授权错误，重定向到登录页
     if (response.status === 401) {

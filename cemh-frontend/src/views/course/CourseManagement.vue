@@ -66,8 +66,10 @@
             v-if="scope.row.coverImage"
             :src="scope.row.coverImage"
             :preview-src-list="[scope.row.coverImage]"
+            :preview-teleported="true"
+            :z-index="3000"
             fit="cover"
-            style="width: 60px; height: 40px; border-radius: 4px;"
+            style="width: 60px; height: 40px; border-radius: 4px; cursor: pointer;"
           />
           <span v-else>无封面</span>
         </template>
@@ -167,6 +169,7 @@
         <el-table-column prop="createTime" label="创建时间" width="160" show-overflow-tooltip />
         <el-table-column label="操作" width="200" align="center" fixed="right">
           <template #default="scope">
+            <el-button type="success" link @click="handleViewChapter(scope.row)">观看</el-button>
             <el-button type="primary" link @click="handleEditChapter(scope.row)">修改</el-button>
             <el-popconfirm
               title="确定要删除该章节吗？"
@@ -217,10 +220,12 @@
           <el-form-item label="视频" prop="videoUrl">
             <file-upload
               v-model="chapterForm.videoUrl"
+              ref="videoUpload"
               file-type="video"
               button-text="上传视频"
               :tip="'支持 mp4 格式，大小不超过 50MB'"
               :max-size="50"
+              @upload-success="handleVideoUploadSuccess"
             />
           </el-form-item>
           
@@ -239,12 +244,13 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus, Refresh, Download, Reading } from '@element-plus/icons-vue'
 import { courseApi } from '@/api/course'
 import CourseForm from './CourseForm.vue'
 import FileUpload from '@/components/FileUpload.vue'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'CourseManagement',
@@ -268,6 +274,9 @@ export default {
       status: null
     })
 
+    // 引入路由器
+    const router = useRouter()
+
     // 数据列表
     const courseList = ref([])
     const total = ref(0)
@@ -289,6 +298,7 @@ export default {
     const chapterFormDialogVisible = ref(false)
     const chapterFormLoading = ref(false)
     const chapterFormRef = ref(null)
+    const videoUpload = ref(null)
     const isEditChapter = ref(false)
     const chapterFormTitle = computed(() => isEditChapter.value ? '修改章节' : '添加章节')
     
@@ -387,32 +397,38 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(async () => {
-          loading.value = true
+          loading.value = true;
           try {
-            const response = await courseApi.exportCourses(queryParams)
+            // 使用URL的方式直接下载文件
+            const baseUrl = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080';
+            // 构建查询参数
+            const params = new URLSearchParams();
+            if (queryParams.courseName) params.append('courseName', queryParams.courseName);
+            if (queryParams.courseAuthor) params.append('courseAuthor', queryParams.courseAuthor);
+            if (queryParams.status !== null) params.append('status', queryParams.status);
             
             // 创建下载链接
-            const blob = new Blob([response], { 
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-            })
-            const link = document.createElement('a')
-            link.href = window.URL.createObjectURL(blob)
-            link.download = `课程列表_${new Date().toLocaleDateString()}.xlsx`
-            link.click()
-            window.URL.revokeObjectURL(link.href)
+            const url = `${baseUrl}/api/courses/export?${params.toString()}`;
+            // 创建一个隐藏的a标签来下载
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `课程列表_${new Date().toLocaleDateString()}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             
-            ElMessage.success('导出成功')
+            ElMessage.success('导出成功');
           } catch (error) {
-            console.error('导出课程异常:', error)
-            ElMessage.error('导出课程异常')
+            console.error('导出课程异常:', error);
+            ElMessage.error('导出课程异常');
           } finally {
-            loading.value = false
+            loading.value = false;
           }
-        })
+        });
       } catch (error) {
-        console.error('导出确认异常:', error)
+        console.error('导出确认异常:', error);
       }
-    }
+    };
 
     // 查看章节
     const handleViewChapters = async (row) => {
@@ -443,7 +459,7 @@ export default {
     
     // 添加章节
     const handleAddChapter = () => {
-      isEditChapter.value = false
+      isEditChapter.value = false;
       
       // 重置表单
       Object.assign(chapterForm, {
@@ -454,14 +470,21 @@ export default {
         description: '',
         videoUrl: '',
         duration: 0
-      })
+      });
       
-      chapterFormDialogVisible.value = true
-    }
+      // 确保文件上传组件状态重置
+      nextTick(() => {
+        if (videoUpload.value) {
+          videoUpload.value.reset();
+        }
+      });
+      
+      chapterFormDialogVisible.value = true;
+    };
     
     // 修改章节
     const handleEditChapter = (row) => {
-      isEditChapter.value = true
+      isEditChapter.value = true;
       
       // 填充表单数据
       Object.assign(chapterForm, {
@@ -472,10 +495,25 @@ export default {
         description: row.description,
         videoUrl: row.videoUrl,
         duration: row.duration
-      })
+      });
       
-      chapterFormDialogVisible.value = true
-    }
+      console.log("编辑章节，原始视频URL:", row.videoUrl);
+      
+      // 确保视频URL格式正确，适应前端展示
+      if (chapterForm.videoUrl && !chapterForm.videoUrl.startsWith('http')) {
+        // 补全视频URL
+        const baseUrl = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080';
+        // 如果是以/开头的相对路径
+        if (chapterForm.videoUrl.startsWith('/')) {
+          chapterForm.videoUrl = `${baseUrl}${chapterForm.videoUrl}`;
+        } else {
+          chapterForm.videoUrl = `${baseUrl}/${chapterForm.videoUrl}`;
+        }
+        console.log("格式化后的视频URL:", chapterForm.videoUrl);
+      }
+      
+      chapterFormDialogVisible.value = true;
+    };
     
     // 删除章节
     const handleDeleteChapter = async (row) => {
@@ -494,49 +532,101 @@ export default {
       }
     }
     
+    // 视频上传成功处理
+    const handleVideoUploadSuccess = (data) => {
+      console.log('视频上传成功:', data);
+      if (data && data.url) {
+        // 确保URL符合格式：http://localhost:8080/uploads/20250627_xxxx.mp4
+        let videoUrl = data.url;
+        
+        // 检查URL格式是否正确，如果不正确，尝试修正
+        if (!videoUrl.match(/^https?:\/\/.*\/uploads\/\d{8}_.*\.\w+$/)) {
+          const baseUrl = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080';
+          // 尝试提取文件名部分
+          const urlParts = videoUrl.split('/');
+          const filename = urlParts[urlParts.length - 1];
+          videoUrl = `${baseUrl}/uploads/${filename}`;
+          console.log('修正后的视频URL:', videoUrl);
+        }
+        
+        console.log('最终设置的视频URL:', videoUrl);
+        chapterForm.videoUrl = videoUrl;
+      }
+    };
+
     // 提交章节表单
     const submitChapterForm = async () => {
-      if (!chapterFormRef.value) return
+      if (!chapterFormRef.value) return;
       
       await chapterFormRef.value.validate(async (valid) => {
         if (!valid) {
-          return false
+          return false;
         }
         
-        chapterFormLoading.value = true
+        chapterFormLoading.value = true;
         try {
-          let res
+          // 视频文件上传处理
+          const videoUploadRef = videoUpload.value;
+          if (videoUploadRef) {
+            // 检查是否有文件等待上传
+            const hasFileToUpload = videoUploadRef.currentFile && videoUploadRef.currentFile.raw && !videoUploadRef.uploading;
+            console.log('视频上传状态检查:', { hasFile: !!videoUploadRef.currentFile, hasRawFile: videoUploadRef.currentFile?.raw, isUploading: videoUploadRef.uploading });
+            
+            if (hasFileToUpload) {
+              // 触发上传
+              console.log('开始上传视频文件...');
+              await videoUploadRef.upload();
+              console.log('视频上传完成, URL:', videoUploadRef.fileUrl);
+              
+              // 确保URL正确设置到表单
+              if (videoUploadRef.fileUrl) {
+                chapterForm.videoUrl = videoUploadRef.fileUrl;
+              }
+            } else {
+              console.log('没有新视频需要上传，保持原有URL:', chapterForm.videoUrl);
+            }
+          }
+
+          // 确保videoUrl不为空
+          if (!chapterForm.videoUrl) {
+            ElMessage.warning('请上传视频文件');
+            chapterFormLoading.value = false;
+            return;
+          }
+
+          console.log('准备提交章节表单:', JSON.stringify(chapterForm));
           
+          let res;
           if (isEditChapter.value) {
             // 编辑模式
             res = await courseApi.updateChapter(
               chapterForm.courseId, 
               chapterForm.id, 
               chapterForm
-            )
+            );
           } else {
             // 新增模式
             res = await courseApi.createChapter(
               chapterForm.courseId, 
               chapterForm
-            )
+            );
           }
           
           if (res.code === 200) {
-            ElMessage.success(isEditChapter.value ? '修改成功' : '添加成功')
-            chapterFormDialogVisible.value = false
-            getChapterList(currentCourse.value.id)
+            ElMessage.success(isEditChapter.value ? '修改成功' : '添加成功');
+            chapterFormDialogVisible.value = false;
+            getChapterList(currentCourse.value.id);
           } else {
-            ElMessage.error(res.msg || (isEditChapter.value ? '修改失败' : '添加失败'))
+            ElMessage.error(res.msg || (isEditChapter.value ? '修改失败' : '添加失败'));
           }
         } catch (error) {
-          console.error('提交章节表单异常:', error)
-          ElMessage.error('操作异常，请稍后重试')
+          console.error('提交章节表单异常:', error);
+          ElMessage.error('操作异常，请稍后重试');
         } finally {
-          chapterFormLoading.value = false
+          chapterFormLoading.value = false;
         }
-      })
-    }
+      });
+    };
 
     // 表单提交成功
     const handleFormSuccess = () => {
@@ -553,6 +643,16 @@ export default {
     const handleCurrentChange = (val) => {
       queryParams.pageNum = val
       getList()
+    }
+
+    // 观看章节
+    const handleViewChapter = (chapter) => {
+      // 导航到课程详情页，并传递章节信息
+      router.push({
+        name: 'CourseDetail',
+        params: { id: chapter.courseId },
+        query: { chapterId: chapter.id }
+      })
     }
 
     onMounted(() => {
@@ -593,9 +693,16 @@ export default {
       chapterFormLoading,
       chapterFormRef,
       chapterForm,
+      isEditChapter,
       chapterRules,
       chapterFormTitle,
-      submitChapterForm
+      submitChapterForm,
+      videoUpload,
+      handleVideoUploadSuccess,
+      
+      // 路由器
+      router,
+      handleViewChapter
     }
   }
 }

@@ -339,27 +339,38 @@ export default {
 
     // 开始学习
     const startLearning = (record) => {
-      router.push(`/course/detail/${record.courseId}?action=start`)
+      router.push(`/dashboard/course-detail/${record.courseId}?action=start`)
     }
 
     // 继续学习
     const continueLearning = (record) => {
-      router.push(`/course/detail/${record.courseId}`)
+      // 如果有最后学习的章节，直接跳转到该章节
+      if (record.lastChapterId) {
+        router.push(`/dashboard/course-detail/${record.courseId}?chapterId=${record.lastChapterId}&action=resume`)
+      } else {
+        // 否则直接打开课程详情页
+        router.push(`/dashboard/course-detail/${record.courseId}?action=start`)
+      }
     }
 
     // 查看课程
     const viewCourse = (record) => {
-      router.push(`/course/detail/${record.courseId}`)
+      router.push(`/dashboard/course-detail/${record.courseId}`)
     }
 
     // 查看详情
     const viewDetails = (record) => {
-      router.push(`/course/detail/${record.courseId}`)
+      // 使用命名路由方式跳转，确保正确匹配路由
+      router.push({
+        name: 'LearningDetail',
+        params: { courseId: record.courseId },
+        query: { recordId: record.id }
+      })
     }
 
     // 跳转到课程列表
     const goToCourses = () => {
-      router.push('/course/management')
+      router.push('/dashboard/course-management')
     }
 
     onMounted(() => {

@@ -172,6 +172,22 @@ public class CourseController {
                                       @Valid @RequestBody CourseChapter chapter) {
         chapter.setId(chapterId);
         chapter.setCourseId(courseId);
+        
+        // 处理视频URL格式
+        if (chapter.getVideoUrl() != null && chapter.getVideoUrl().startsWith("http")) {
+            // 如果是完整URL格式，保留文件名部分
+            String fullUrl = chapter.getVideoUrl();
+            logger.info("处理章节视频URL: {}", fullUrl);
+            
+            // 从URL中提取文件名 - 保持原格式存储以兼容现有代码
+            String filename = fullUrl.substring(fullUrl.lastIndexOf("/") + 1);
+            if (filename.matches("\\d{8}_.*\\.\\w+")) {
+                // 如果是日期格式的文件名，则使用新格式存储
+                chapter.setVideoUrl("/uploads/" + filename);
+                logger.info("更新后的视频URL: {}", chapter.getVideoUrl());
+            }
+        }
+        
         return courseService.updateChapter(chapter);
     }
     

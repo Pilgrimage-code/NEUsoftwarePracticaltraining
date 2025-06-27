@@ -218,16 +218,33 @@ export default {
           fileUrl.value = response.data.url
           fileName.value = response.data.name || currentFile.value.name
           
+          // 确保URL的正确格式(http://localhost:8080/uploads/20250627_xxxx.mp4)
+          console.log('原始上传URL:', fileUrl.value)
+          
+          // 如果URL不是期望的格式，则修正它
+          if (!fileUrl.value.match(/^https?:\/\/.*\/uploads\/\d{8}_.*\.\w+$/)) {
+            const baseUrl = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080'
+            const urlParts = fileUrl.value.split('/')
+            const filename = urlParts[urlParts.length - 1]
+            fileUrl.value = `${baseUrl}/uploads/${filename}`
+            console.log('修正后的URL:', fileUrl.value)
+          }
+          
           emit('update:fileUrl', fileUrl.value)
           emit('update:fileName', fileName.value)
-          emit('upload-success', {
+          
+          // 修正视频URL格式
+          const finalData = {
             url: fileUrl.value,
             name: fileName.value,
             size: response.data.size,
             response
-          })
+          };
           
-          console.log('上传成功, URL:', fileUrl.value)
+          // 确保视频相关信息传递给父组件
+          emit('upload-success', finalData)
+          
+          console.log('上传成功, 最终URL:', fileUrl.value)
           ElMessage.success('上传成功')
         } else {
           throw new Error(response.message || '上传失败')
@@ -337,7 +354,8 @@ export default {
       handleExceed,
       handleError,
       beforeUpload,
-      handlePreviewError
+      handlePreviewError,
+      currentFile
     }
   }
 }
