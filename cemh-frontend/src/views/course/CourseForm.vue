@@ -30,13 +30,17 @@
       </el-form-item>
       
       <el-form-item label="课程封面" prop="coverImage">
-        <file-upload
-          v-model="form.coverImage"
-          file-type="image"
-          list-type="picture-card"
-          :tip="'支持 jpg、png、gif 格式，大小不超过 2MB'"
-          :max-size="2"
-        />
+        <el-upload
+          class="cover-uploader"
+          action="http://localhost:8080/api/upload/image"
+          :show-file-list="false"
+          :before-upload="beforeCoverUpload"
+          :on-success="handleCoverSuccess"
+          accept="image/*"
+        >
+          <img v-if="form.coverImage" :src="form.coverImage" class="cover-image" />
+          <el-icon v-else class="cover-icon"><Plus /></el-icon>
+        </el-upload>
       </el-form-item>
       
       <el-form-item label="课程视频" prop="videoUrl">
@@ -78,11 +82,13 @@ import { ref, reactive, defineComponent, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import FileUpload from '@/components/FileUpload.vue'
 import { courseApi } from '@/api/course'
+import { Plus } from '@element-plus/icons-vue'
 
 export default defineComponent({
   name: 'CourseForm',
   components: {
-    FileUpload
+    FileUpload,
+    Plus
   },
   props: {
     // 编辑模式下的课程ID
@@ -135,6 +141,31 @@ export default defineComponent({
       videoUrl: [
         { required: true, message: '请上传课程视频', trigger: 'change' }
       ]
+    }
+    
+    // 图片上传前校验
+    const beforeCoverUpload = (file) => {
+      const isImage = file.type.startsWith('image/')
+      const isLt2M = file.size / 1024 / 1024 < 2
+      if (!isImage) {
+        ElMessage.error('只能上传图片文件!')
+        return false
+      }
+      if (!isLt2M) {
+        ElMessage.error('图片大小不能超过 2MB!')
+        return false
+      }
+      return true
+    }
+    
+    // 图片上传成功回调
+    const handleCoverSuccess = (response) => {
+      if (response.code === 200) {
+        form.coverImage = response.data.url
+        ElMessage.success('图片上传成功')
+      } else {
+        ElMessage.error(response.message || '图片上传失败')
+      }
     }
     
     // 如果是编辑模式，获取课程详情
@@ -210,7 +241,9 @@ export default defineComponent({
       rules,
       loading,
       submitForm,
-      cancel
+      cancel,
+      beforeCoverUpload,
+      handleCoverSuccess
     }
   }
 })
@@ -220,5 +253,19 @@ export default defineComponent({
 .course-form {
   max-width: 800px;
   margin: 0 auto;
+}
+.cover-uploader {
+  display: inline-block;
+}
+.cover-image {
+  width: 200px;
+  height: 112px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+.cover-icon {
+  font-size: 32px;
+  color: #aaa;
 }
 </style> 

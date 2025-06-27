@@ -71,7 +71,7 @@
           <div class="record-info">
             <div class="course-cover">
               <img 
-                :src="record.courseImage || '/default-course.png'" 
+                :src="record.courseImage" 
                 :alt="record.courseName"
                 @error="handleImageError"
               />

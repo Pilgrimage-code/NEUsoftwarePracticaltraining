@@ -7,9 +7,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,22 +27,60 @@ public class UploadController {
     
     private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
     
+    @Value("${file.upload.path:D:/uploads}")
+    private String uploadPath;
+
+    @Value("${file.upload.url-prefix:http://localhost:8080/uploads}")
+    private String urlPrefix;
+
+    @Value("${server.port:8080}")
+    private String serverPort;
+
+    @Value("${file.upload.domain:http://localhost}")
+    private String domain;
+    
     @Operation(summary = "上传图片")
     @PostMapping("/image")
-    public Result<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+    public Result<Map<String, Object>> uploadImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return Result.error("请选择要上传的文件");
+        }
+        // 检查文件类型
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return Result.error("只能上传图片文件");
+        }
+        // 检查文件大小（2MB）
+        if (file.getSize() > 2 * 1024 * 1024) {
+            return Result.error("文件大小不能超过2MB");
+        }
         try {
-            logger.info("上传图片: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
-            String filePath = FileUtils.saveFile(file, "image");
-            
-            Map<String, String> data = new HashMap<>();
-            data.put("url", filePath);
-            data.put("name", file.getOriginalFilename());
-            data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
-            
-            return Result.success(data);
+            // 创建上传目录
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+            // 生成文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String dateStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String filename = dateStr + "_" + java.util.UUID.randomUUID().toString() + extension;
+            // 保存文件
+            File destFile = new File(uploadDir, filename);
+            file.transferTo(destFile);
+            // 返回文件信息
+            Map<String, Object> result = new HashMap<>();
+            result.put("filename", filename);
+            result.put("originalName", originalFilename);
+            result.put("size", file.getSize());
+            result.put("url", urlPrefix + "/" + filename);
+            return Result.success(result);
         } catch (IOException e) {
             logger.error("上传图片失败", e);
-            return Result.error("上传图片失败: " + e.getMessage());
+            return Result.error("文件上传失败：" + e.getMessage());
         }
     }
     
@@ -50,9 +90,10 @@ public class UploadController {
         try {
             logger.info("上传视频: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
             String filePath = FileUtils.saveFile(file, "video");
+            String url = buildFullUrl(filePath);
             
             Map<String, String> data = new HashMap<>();
-            data.put("url", filePath);
+            data.put("url", url);
             data.put("name", file.getOriginalFilename());
             data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
             
@@ -69,9 +110,10 @@ public class UploadController {
         try {
             logger.info("上传文档: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
             String filePath = FileUtils.saveFile(file, "document");
+            String url = buildFullUrl(filePath);
             
             Map<String, String> data = new HashMap<>();
-            data.put("url", filePath);
+            data.put("url", url);
             data.put("name", file.getOriginalFilename());
             data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
             
@@ -88,9 +130,10 @@ public class UploadController {
         try {
             logger.info("上传文件: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
             String filePath = FileUtils.saveFile(file, "other");
+            String url = buildFullUrl(filePath);
             
             Map<String, String> data = new HashMap<>();
-            data.put("url", filePath);
+            data.put("url", url);
             data.put("name", file.getOriginalFilename());
             data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
             
@@ -116,6 +159,21 @@ public class UploadController {
         } else {
             return Result.error("删除文件失败");
         }
+    }
+    
+    private String buildFullUrl(String filePath) {
+        // filePath 形如 /uploads/images/2025/06/27/xxx.png
+        // 只保留 /images/2025/06/27/xxx.png 部分
+        String path = filePath;
+        int idx = filePath.indexOf("/images");
+        if (idx == -1) idx = filePath.indexOf("/videos");
+        if (idx == -1) idx = filePath.indexOf("/documents");
+        if (idx == -1) idx = filePath.indexOf("/others");
+        if (idx != -1) {
+            path = filePath.substring(idx);
+        }
+        // 拼接完整URL
+        return domain + ":" + serverPort + urlPrefix + path;
     }
     
     @Data
