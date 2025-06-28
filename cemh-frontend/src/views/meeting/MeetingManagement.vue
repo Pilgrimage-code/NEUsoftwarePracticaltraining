@@ -407,48 +407,6 @@ const pagination = reactive({
   size: 20
 })
 
-// 会议表单
-const meetingForm = reactive({
-  id: null,
-  title: '',
-  description: '',
-  type: '',
-  status: 'draft',
-  startTime: null,
-  endTime: null,
-  location: '',
-  maxParticipants: null,
-  registrationDeadline: null,
-  requiresApproval: false,
-  fee: 0,
-  requirements: '',
-  tags: [],
-  coverImage: '',
-  remarks: '',
-  tenantId: localStorage.getItem('tenantId'),
-  userId: localStorage.getItem('userId')
-})
-
-// 表单验证规则
-const meetingFormRules = {
-  title: [
-    { required: true, message: '会议标题不能为空', trigger: 'blur' },
-    { min: 1, max: 100, message: '标题长度在 1 到 100 个字符', trigger: 'blur' }
-  ],
-  type: [
-    { required: true, message: '会议类型不能为空', trigger: 'change' }
-  ],
-  startTime: [
-    { required: true, message: '开始时间不能为空', trigger: 'change' }
-  ],
-  endTime: [
-    { required: true, message: '结束时间不能为空', trigger: 'change' }
-  ],
-  coverImage: [
-    { required: true, message: '会议封面图片不能为空', trigger: 'change' }
-  ]
-}
-
 // 加载会议列表
 const loadMeetingList = async () => {
   loading.value = true
@@ -458,8 +416,7 @@ const loadMeetingList = async () => {
       size: pagination.size,
       ...searchForm
     }
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 500))
+
     
     const response = await meetingApi.getMeetingList(params, localStorage.getItem('tenantId')) 
     
@@ -493,32 +450,6 @@ const handleReset = () => {
   })
   pagination.page = 1
   loadMeetingList()
-}
-
-// 新增会议
-const handleAdd = () => {
-  dialogTitle.value = '新增会议'
-  Object.assign(meetingForm, {
-    id: null,
-    title: '',
-    description: '',
-    type: '',
-    status: 'draft',
-    startTime: null,
-    endTime: null,
-    location: '',
-    maxParticipants: null,
-    registrationDeadline: null,
-    requiresApproval: false,
-    fee: 0,
-    requirements: '',
-    tags: [],
-    coverImage: '',
-    remarks: '',
-    tenantId: localStorage.getItem('tenantId'),
-    userId: localStorage.getItem('userId')
-  })
-  dialogVisible.value = true
 }
 
 // 分页处理
@@ -730,7 +661,13 @@ const handleDetailClose = () => {
 // 格式化日期时间
 const formatDateTime = (dateString) => {
   if (!dateString) return '-'
-  const date = new Date(dateString)
+  // const date = new Date(dateString)
+
+  const standardDateString = dateString.replace(/([+-]\d{2})$/, '$1:00');
+  const date = new Date(standardDateString);
+  if (isNaN(date.getTime())) {
+    return '无效日期';
+  }
   return date.toLocaleString('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -777,7 +714,9 @@ const getMeetingStatusText = (status) => {
   const texts = {
     0: '草稿',
     1: '已发布',
-    2: '已取消'
+    2: '已取消',
+    3: '已结束', // 添加新的状态映射
+    4: '进行中'  // 添加新的状态映射
   }
   return texts[status] || '未知'
 }
@@ -940,6 +879,7 @@ onMounted(() => {
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2; /* 添加标准属性 */
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-bottom: 16px;

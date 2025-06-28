@@ -11,6 +11,7 @@ import com.cemh.entity.Meeting;
 import com.cemh.mapper.MeetingMapper;
 import com.cemh.service.MeetingService;
 import com.cemh.vo.MeetingVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 /**
  * 会议服务实现类
  */
+@Slf4j
 @Service
 @Transactional
 public class MeetingServiceImpl implements MeetingService {
@@ -157,7 +159,7 @@ public class MeetingServiceImpl implements MeetingService {
             
             // 会议类型
             if (queryDTO.getType() != null) {
-                queryWrapper.eq(Meeting::getMeetingType, queryDTO.getType());
+                queryWrapper.eq(Meeting::getType, queryDTO.getType());
             }
             
             // 会议状态
@@ -322,50 +324,42 @@ public class MeetingServiceImpl implements MeetingService {
         BeanUtils.copyProperties(meeting, vo);
         
         // 设置类型文本
-        switch (meeting.getMeetingType()) {
+        switch (meeting.getType()) {
             case 1:
-                vo.setType("online");
+                vo.setType(1);
                 vo.setTypeText("线上会议");
                 break;
             case 2:
-                vo.setType("offline");
+                vo.setType(2);
                 vo.setTypeText("线下会议");
                 break;
             case 3:
-                vo.setType("hybrid");
+                vo.setType(3);
                 vo.setTypeText("混合会议");
                 break;
         }
-        
+
         // 设置状态文本
         switch (meeting.getStatus()) {
             case 0:
-                vo.setStatus("draft");
+                vo.setStatus(0);
                 vo.setStatusText("草稿");
                 break;
             case 1:
-                vo.setStatus("published");
+                vo.setStatus(1);
                 vo.setStatusText("已发布");
                 break;
             case 2:
-                vo.setStatus("ongoing");
-                vo.setStatusText("报名中");
+                vo.setStatus(2);
+                vo.setStatusText("已取消");
                 break;
             case 3:
-                vo.setStatus("registration_ended");
-                vo.setStatusText("报名结束");
-                break;
-            case 4:
-                vo.setStatus("in_progress");
-                vo.setStatusText("进行中");
-                break;
-            case 5:
-                vo.setStatus("completed");
+                vo.setStatus(3);
                 vo.setStatusText("已结束");
                 break;
-            case 6:
-                vo.setStatus("cancelled");
-                vo.setStatusText("已取消");
+            case 4:
+                vo.setStatus(4);
+                vo.setStatusText("进行中");
                 break;
         }
         
