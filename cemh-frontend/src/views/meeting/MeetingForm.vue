@@ -48,9 +48,9 @@
                 <el-col :span="12">
                   <el-form-item label="会议类型" prop="type">
                     <el-select v-model="meetingForm.type" placeholder="请选择会议类型" style="width: 100%">
-                      <el-option label="线上会议" value="online" />
-                      <el-option label="线下会议" value="offline" />
-                      <el-option label="混合会议" value="hybrid" />
+                      <el-option label="线上会议" value="1" />
+                      <el-option label="线下会议" value="2" />
+                      <el-option label="混合会议" value="3" />
                     </el-select>
                   </el-form-item>
                 </el-col>
@@ -294,7 +294,7 @@ export default {
         const mockData = {
           title: '2024年度工作总结会议',
           description: '回顾2024年工作成果，制定2025年发展计划',
-          type: 'hybrid',
+          type: '1',
           status: 2,
           startTime: new Date('2024-06-20 14:00:00'),
           endTime: new Date('2024-06-20 17:00:00'),

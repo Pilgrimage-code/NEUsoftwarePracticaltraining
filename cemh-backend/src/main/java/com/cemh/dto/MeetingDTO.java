@@ -50,15 +50,15 @@ public class MeetingDTO {
      * 开始时间
      */
     @NotNull(message = "开始时间不能为空")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
+    private OffsetDateTime startTime;
 
     /**
      * 结束时间
      */
     @NotNull(message = "结束时间不能为空")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime endTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
+    private OffsetDateTime endTime;
 
     /**
      * 会议地点
