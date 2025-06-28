@@ -1,5 +1,6 @@
 package com.cemh.mapper;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -22,19 +23,8 @@ public interface MeetingMapper extends BaseMapper<Meeting> {
     /**
      * 分页查询会议列表
      */
-    @Select("SELECT m.*, u.nickname as creator_name, d.dept_name as dept_name " +
-            "FROM meeting m " +
-            "LEFT JOIN sys_user u ON m.creator_id = u.id " +
-            "LEFT JOIN sys_dept d ON m.dept_id = d.id " +
-            "WHERE m.tenant_id = #{tenantId} AND m.deleted = 0 " +
-            "ORDER BY m.is_top DESC, m.create_time DESC")
-    IPage<Meeting> selectMeetingPage(Page<Meeting> page, 
-                                   @Param("tenantId") Long tenantId,
-                                   @Param("title") String title,
-                                   @Param("status") Integer status,
-                                   @Param("type") Integer type,
-                                   @Param("startTime") LocalDateTime startTime,
-                                   @Param("endTime") LocalDateTime endTime);
+
+
 
     /**
      * 查询用户参与的会议
@@ -116,13 +106,13 @@ public interface MeetingMapper extends BaseMapper<Meeting> {
      * @return 插入成功的记录数
      */
     @Insert("INSERT INTO meeting (" +
-            "title, remark, meeting_type, location, start_time, end_time, " +
-            "registration_end_time, max_participants, current_participants, " +
-            "fee, status, need_approval, cover_image, content, organizer" +
+            "id, title, description, type, status, start_time, end_time, " +
+            "location, max_participants, registration_deadline, requires_approval, " +
+            "fee, requirements, tags, cover_image, remark, tenant_id" +
             ") VALUES (" +
-            "#{title}, #{remark}, #{meetingType}, #{location}, #{startTime}, #{endTime}, " +
-            "#{registrationEndTime}, #{maxParticipants}, #{currentParticipants}, " +
-            "#{fee}, #{status}, #{needApproval}, #{coverImage}, #{content}, #{organizer}, " +
+            "#{id}, #{title}, #{description}, #{type}, #{status}, #{startTime}, #{endTime}, " +
+            "#{location}, #{maxParticipants}, #{registrationDeadline}, #{requiresApproval}, " +
+            "#{fee}, #{requirements}, #{tags}, #{coverImage}, #{remark}, #{tenantId}" +
             ")")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert(Meeting meeting);

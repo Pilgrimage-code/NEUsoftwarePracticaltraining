@@ -4,12 +4,17 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * 会议实体类
@@ -20,6 +25,9 @@ import java.time.LocalDateTime;
  */
 @Schema(description = "会议信息")
 @TableName("meeting")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Meeting extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
@@ -39,9 +47,13 @@ public class Meeting extends BaseEntity {
     private String remark;
 
     @Schema(description = "会议类型（1：线上会议，2：线下会议，3：混合会议）")
-    @TableField("meeting_type")
+    @TableField("type")
     @NotNull(message = "会议类型不能为空")
-    private Integer meetingType;
+    private Integer type;
+
+    @Schema(description = "会议详情")
+    @TableField("description")
+    private String description;
 
     @Schema(description = "会议地点")
     @TableField("location")
@@ -49,21 +61,21 @@ public class Meeting extends BaseEntity {
 
     @Schema(description = "会议开始时间")
     @TableField("start_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
     @NotNull(message = "会议开始时间不能为空")
-    private LocalDateTime startTime;
+    private OffsetDateTime startTime;
 
     @Schema(description = "会议结束时间")
     @TableField("end_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
     @NotNull(message = "会议结束时间不能为空")
-    private LocalDateTime endTime;
+    private OffsetDateTime endTime;
 
 
     @Schema(description = "报名截至时间")
-    @TableField("registration_end_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime registrationEndTime;
+    @TableField("registration_deadline")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
+    private OffsetDateTime registrationDeadline;
 
     @Schema(description = "最大参会人数")
     @TableField("max_participants")
@@ -82,16 +94,12 @@ public class Meeting extends BaseEntity {
     private Integer status;
 
     @Schema(description = "是否需要审核（0：不需要，1：需要）")
-    @TableField("need_approval")
-    private Integer needApproval;
+    @TableField("requires_approval")
+    private Integer requiresApproval;
 
     @Schema(description = "会议封面图")
     @TableField("cover_image")
     private String coverImage;
-
-    @Schema(description = "会议详情")
-    @TableField("content")
-    private String content;
 
     @Schema(description = "主办方")
     @TableField("organizer")
@@ -113,205 +121,18 @@ public class Meeting extends BaseEntity {
     @TableField("view_count")
     private Integer viewCount;
 
-    public Meeting() {
-        this.meetingType = 2; // 默认线下会议
-        this.status = 0; // 默认草稿状态
-        this.needApproval = 0; // 默认不需要审核
-        this.currentParticipants = 0; // 默认当前报名人数为0
-        this.isTop = 0; // 默认不置顶
-        this.viewCount = 0; // 默认浏览次数为0
-        this.fee = BigDecimal.ZERO; // 默认免费
-    }
+    @Schema(description = "会议标签")
+    @TableField("tags")
+    private String tags;
 
-    // Getter and Setter methods
-    public String getTitle() {
-        return title;
-    }
+    @Schema(description = "租户id")
+    @TableField("tenant_id")
+    private Long tenantId;
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public Integer getMeetingType() {
-        return meetingType;
-    }
-
-    public void setMeetingType(Integer meetingType) {
-        this.meetingType = meetingType;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
+    @Schema(description = "参会要求")
+    @TableField("requirements")
+    private String requirements;
 
 
-    public LocalDateTime getRegistrationEndTime() {
-        return registrationEndTime;
-    }
-
-    public void setRegistrationEndTime(LocalDateTime registrationEndTime) {
-        this.registrationEndTime = registrationEndTime;
-    }
-
-    public Integer getMaxParticipants() {
-        return maxParticipants;
-    }
-
-    public void setMaxParticipants(Integer maxParticipants) {
-        this.maxParticipants = maxParticipants;
-    }
-
-    public Integer getCurrentParticipants() {
-        return currentParticipants;
-    }
-
-    public void setCurrentParticipants(Integer currentParticipants) {
-        this.currentParticipants = currentParticipants;
-    }
-
-    public BigDecimal getFee() {
-        return fee;
-    }
-
-    public void setFee(BigDecimal fee) {
-        this.fee = fee;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Integer getNeedApproval() {
-        return needApproval;
-    }
-
-    public void setNeedApproval(Integer needApproval) {
-        this.needApproval = needApproval;
-    }
-
-    public String getCoverImage() {
-        return coverImage;
-    }
-
-    public void setCoverImage(String coverImage) {
-        this.coverImage = coverImage;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getOrganizer() {
-        return organizer;
-    }
-
-    public void setOrganizer(String organizer) {
-        this.organizer = organizer;
-    }
-
-
-    public String getMeetingLink() {
-        return meetingLink;
-    }
-
-    public void setMeetingLink(String meetingLink) {
-        this.meetingLink = meetingLink;
-    }
-
-    public String getMeetingPassword() {
-        return meetingPassword;
-    }
-
-    public void setMeetingPassword(String meetingPassword) {
-        this.meetingPassword = meetingPassword;
-    }
-
-    public Integer getIsTop() {
-        return isTop;
-    }
-
-    public void setIsTop(Integer isTop) {
-        this.isTop = isTop;
-    }
-
-    public Integer getViewCount() {
-        return viewCount;
-    }
-
-    public void setViewCount(Integer viewCount) {
-        this.viewCount = viewCount;
-    }
-
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    @Override
-    public String toString() {
-        return "Meeting{" +
-                "id=" + id +
-                "title='" + title + '\'' +
-                ", remark='" + remark + '\'' +
-                ", meetingType=" + meetingType +
-                ", location='" + location + '\'' +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
-                ", registrationEndTime=" + registrationEndTime +
-                ", maxParticipants=" + maxParticipants +
-                ", currentParticipants=" + currentParticipants +
-                ", fee=" + fee +
-                ", status=" + status +
-                ", needApproval=" + needApproval +
-                ", coverImage='" + coverImage + '\'' +
-                ", content='" + content + '\'' +
-                ", organizer='" + organizer + '\'' +
-                ", meetingLink='" + meetingLink + '\'' +
-                ", meetingPassword='" + meetingPassword + '\'' +
-                ", isTop=" + isTop +
-                ", viewCount=" + viewCount +
-                '}';
-    }
 }
 

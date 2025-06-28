@@ -48,20 +48,20 @@
                 <el-col :span="12">
                   <el-form-item label="会议类型" prop="type">
                     <el-select v-model="meetingForm.type" placeholder="请选择会议类型" style="width: 100%">
-                      <el-option label="线上会议" value="online" />
-                      <el-option label="线下会议" value="offline" />
-                      <el-option label="混合会议" value="hybrid" />
+                      <el-option label="线上会议" value="1" />
+                      <el-option label="线下会议" value="2" />
+                      <el-option label="混合会议" value="3" />
                     </el-select>
                   </el-form-item>
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="会议状态" prop="status">
                     <el-select v-model="meetingForm.status" placeholder="请选择会议状态" style="width: 100%">
-                      <el-option label="草稿" value="draft" />
-                      <el-option label="已发布" value="published" />
-                      <el-option label="进行中" value="ongoing" />
-                      <el-option label="已结束" value="completed" />
-                      <el-option label="已取消" value="cancelled" />
+                      <el-option label="草稿" value="0" />
+                      <el-option label="已发布" value="1" />
+                      <el-option label="进行中" value="2" />
+                      <el-option label="已结束" value="3" />
+                      <el-option label="已取消" value="4" />
                     </el-select>
                   </el-form-item>
                 </el-col>
@@ -151,7 +151,7 @@
               <el-form-item label="会议标签">
                 <el-select
                   v-model="meetingForm.tags"
-                  multiple
+                  
                   filterable
                   allow-create
                   placeholder="请选择或输入会议标签"
@@ -201,7 +201,7 @@
               
               <el-form-item label="备注信息">
                 <el-input
-                  v-model="meetingForm.remarks"
+                  v-model="meetingForm.remark"
                   type="textarea"
                   :rows="3"
                   placeholder="请输入备注信息"
@@ -227,6 +227,7 @@
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import {meetingApi} from '@/api/meeting'
 import { ElMessage } from 'element-plus'
 
 export default {
@@ -249,7 +250,7 @@ export default {
       title: '',
       description: '',
       type: 'online',
-      status: 'draft',
+      status: 1,
       startTime: '',
       endTime: '',
       location: '',
@@ -258,10 +259,10 @@ export default {
       requiresApproval: false,
       fee: 0,
       requirements: '',
-      tags: [],
+      tags: '',
       attachments: [],
       coverImage: '',
-      remarks: ''
+      remark: ''
     })
     
     // 表单验证规则
@@ -293,8 +294,8 @@ export default {
         const mockData = {
           title: '2024年度工作总结会议',
           description: '回顾2024年工作成果，制定2025年发展计划',
-          type: 'hybrid',
-          status: 'published',
+          type: '1',
+          status: 2,
           startTime: new Date('2024-06-20 14:00:00'),
           endTime: new Date('2024-06-20 17:00:00'),
           location: '会议室A + 腾讯会议',
@@ -303,10 +304,10 @@ export default {
           requiresApproval: true,
           fee: 0,
           requirements: '请携带笔记本电脑',
-          tags: ['tech', 'review'],
+          tags: 'tech',
           attachments: [],
           coverImage: '',
-          remarks: '重要会议，请准时参加'
+          remark: '重要会议，请准时参加'
         }
         
         Object.assign(meetingForm, mockData)
@@ -350,7 +351,7 @@ export default {
     const handleSaveDraft = async () => {
       saving.value = true
       try {
-        meetingForm.status = 'draft'
+        meetingForm.status = 1
         // 模拟API调用
         await new Promise(resolve => setTimeout(resolve, 1000))
         ElMessage.success('草稿保存成功')
@@ -367,12 +368,17 @@ export default {
         await meetingFormRef.value.validate()
         saving.value = true
         
-        // 模拟API调用
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const result = await meetingApi.createMeeting(meetingForm)
+
+        if(result.code === 200){
+          ElMessage.success(isEdit.value ? '会议更新成功' : '会议创建成功')
+          router.push('/dashboard/meeting')
+        } else {
+          ElMessage.error(result.msg)
+        }
         
-        ElMessage.success(isEdit.value ? '会议更新成功' : '会议创建成功')
-        router.push('/dashboard/meeting')
       } catch (error) {
+        console.error('操作出错:', error) // 打印错误信息
         if (error !== false) {
           ElMessage.error('操作失败')
         }

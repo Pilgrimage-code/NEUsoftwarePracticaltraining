@@ -1,0 +1,6 @@
+/cemh-backend/target/
+/cemh-backend/.idea/
+/.idea/
+/cemh-frontend/.idea/
+/cemh-backend/logs/
+/cemh-frontend/node_modules/
