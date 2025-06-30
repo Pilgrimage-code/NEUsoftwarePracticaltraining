@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.wf.captcha.SpecCaptcha;
 import com.wf.captcha.base.Captcha;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,10 +31,12 @@ public class CaptchaServiceImpl implements CaptchaService {
         } else {
             img = "data:image/png;base64," + base64;
         }
-        return Map.of(
-            "img", img,
-            "key", key
-        );
+        
+        // 使用Java 8兼容的方式创建Map
+        Map<String, Object> result = new HashMap<>();
+        result.put("img", img);
+        result.put("key", key);
+        return result;
     }
 
     @Override

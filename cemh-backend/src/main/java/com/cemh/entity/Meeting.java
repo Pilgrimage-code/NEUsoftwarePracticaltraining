@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -61,21 +60,21 @@ public class Meeting extends BaseEntity {
 
     @Schema(description = "会议开始时间")
     @TableField("start_time")
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @NotNull(message = "会议开始时间不能为空")
-    private OffsetDateTime startTime;
+    private LocalDateTime startTime;
 
     @Schema(description = "会议结束时间")
     @TableField("end_time")
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @NotNull(message = "会议结束时间不能为空")
-    private OffsetDateTime endTime;
+    private LocalDateTime endTime;
 
 
     @Schema(description = "报名截至时间")
     @TableField("registration_deadline")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
-    private OffsetDateTime registrationDeadline;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime registrationDeadline;
 
     @Schema(description = "最大参会人数")
     @TableField("max_participants")
@@ -141,12 +140,12 @@ public class Meeting extends BaseEntity {
     public void setDescription(String description) { this.description = description; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
-    public OffsetDateTime getStartTime() { return startTime; }
-    public void setStartTime(OffsetDateTime startTime) { this.startTime = startTime; }
-    public OffsetDateTime getEndTime() { return endTime; }
-    public void setEndTime(OffsetDateTime endTime) { this.endTime = endTime; }
-    public OffsetDateTime getRegistrationDeadline() { return registrationDeadline; }
-    public void setRegistrationDeadline(OffsetDateTime registrationDeadline) { this.registrationDeadline = registrationDeadline; }
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public LocalDateTime getRegistrationDeadline() { return registrationDeadline; }
+    public void setRegistrationDeadline(LocalDateTime registrationDeadline) { this.registrationDeadline = registrationDeadline; }
     public Integer getMaxParticipants() { return maxParticipants; }
     public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
     public Integer getCurrentParticipants() { return currentParticipants; }
