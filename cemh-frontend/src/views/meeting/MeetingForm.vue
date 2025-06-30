@@ -249,8 +249,8 @@ export default {
     const meetingForm = reactive({
       title: '',
       description: '',
-      type: 'online',
-      status: 1,
+      type: '',
+      status: '',
       startTime: '',
       endTime: '',
       location: '',
@@ -262,7 +262,8 @@ export default {
       tags: '',
       attachments: [],
       coverImage: '',
-      remark: ''
+      remark: '',
+      isTop: 0
     })
     
     // 表单验证规则
@@ -290,28 +291,43 @@ export default {
     // 获取会议详情（编辑模式）
     const getMeetingDetail = async (id) => {
       try {
-        // 模拟API调用
-        const mockData = {
-          title: '2024年度工作总结会议',
-          description: '回顾2024年工作成果，制定2025年发展计划',
-          type: '1',
-          status: 2,
-          startTime: new Date('2024-06-20 14:00:00'),
-          endTime: new Date('2024-06-20 17:00:00'),
-          location: '会议室A + 腾讯会议',
-          maxParticipants: 50,
-          registrationDeadline: new Date('2024-06-18 18:00:00'),
-          requiresApproval: true,
-          fee: 0,
-          requirements: '请携带笔记本电脑',
-          tags: 'tech',
-          attachments: [],
-          coverImage: '',
-          remark: '重要会议，请准时参加'
+        //获取会议详情
+        console.log('开始获取会议详情，ID:', id);
+        // 获取会议详情
+        const mockData = await meetingApi.getMeetingDetail(id)
+        console.log('后端返回的数据:', mockData); // 打印后端返回的数据，用于调试
+
+        if (!mockData) {
+          console.error('后端返回的数据为空');
+          ElMessage.error('获取会议详情失败，返回数据为空')
+          return;
         }
-        
-        Object.assign(meetingForm, mockData)
+        const meetingData = mockData.data;
+
+        // 手动赋值，处理数据类型
+        meetingForm.title = meetingData.title || ''
+        meetingForm.description = meetingData.description || ''
+        meetingForm.type = String(meetingData.type) || '' // 确保类型为字符串
+        meetingForm.status = String(meetingData.status) || '' // 确保状态为字符串
+        meetingForm.startTime = meetingData.startTime ? new Date(meetingData.startTime) : ''
+        meetingForm.endTime = meetingData.endTime ? new Date(meetingData.endTime) : ''
+        meetingForm.location = meetingData.location || ''
+        meetingForm.maxParticipants = Number(meetingData.maxParticipants) || 0
+        meetingForm.registrationDeadline = meetingData.registrationDeadline ? new Date(meetingData.registrationDeadline) : ''
+        meetingForm.requiresApproval = Boolean(meetingData.requiresApproval) || false
+        meetingForm.fee = Number(meetingData.fee) || 0
+        meetingForm.requirements = meetingData.requirements || ''
+        meetingForm.tags = meetingData.tags || ''
+        meetingForm.attachments = meetingData.attachments || []
+        meetingForm.coverImage = meetingData.coverImage || ''
+        meetingForm.remark = meetingData.remark || ''
+
+
+        console.log('赋值后的表单数据:', meetingForm);
+
+
       } catch (error) {
+        console.log('获取会议详情出错:', error)
         ElMessage.error('获取会议详情失败')
       }
     }
@@ -368,11 +384,17 @@ export default {
         await meetingFormRef.value.validate()
         saving.value = true
         
-        const result = await meetingApi.createMeeting(meetingForm)
+        let result;
 
+        if(isEdit.value){
+          meetingForm.id = route.params.id
+         result = await meetingApi.updateMeeting(meetingForm)
+        } else {
+          esult = await meetingApi.createMeeting(meetingForm)
+        }
         if(result.code === 200){
           ElMessage.success(isEdit.value ? '会议更新成功' : '会议创建成功')
-          router.push('/dashboard/meeting')
+          router.push('/dashboard/meetings')
         } else {
           ElMessage.error(result.msg)
         }
@@ -394,9 +416,15 @@ export default {
     
     // 组件挂载时的初始化
     onMounted(() => {
+      console.log('路由名称:', route.name);
+      console.log('路由参数:', route.params);
       if (isEdit.value && route.params.id) {
         getMeetingDetail(route.params.id)
+      } else {
+        console.log('未进入编辑模式或缺少 ID 参数');
+        loading.value = false
       }
+
     })
     
     return {

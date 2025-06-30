@@ -162,5 +162,10 @@ public class MeetingVO {
      * 距离开始时间（分钟）
      */
     private Long timeToStart;
+
+    /**
+     * 是否顶置
+     */
+    private Integer isTop;
 }
 

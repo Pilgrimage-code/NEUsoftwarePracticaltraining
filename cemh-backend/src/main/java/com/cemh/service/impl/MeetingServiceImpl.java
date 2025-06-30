@@ -50,6 +50,7 @@ public class MeetingServiceImpl implements MeetingService {
             meeting.setCurrentParticipants(0);
             meeting.setViewCount(0);
             meeting.setIsTop(0);
+            meeting.setViewCount(0);
             
             // 保存到数据库
             int result = meetingMapper.insert(meeting);
@@ -128,10 +129,10 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-            // 检查租户权限
-            if (!meeting.getTenantId().equals(tenantId)) {
-                return Result.error("无权限查看此会议");
-            }
+//            // 检查租户权限
+//            if (!meeting.getTenantId().equals(tenantId)) {
+//                return Result.error("无权限查看此会议");
+//            }
             
             // 实体转VO
             MeetingVO meetingVO = convertToVO(meeting);
@@ -193,14 +194,14 @@ public class MeetingServiceImpl implements MeetingService {
                 queryWrapper.le(Meeting::getCreateTime, queryDTO.getCreateTimeEnd());
             }
 
-            // 先按创建时间排序，再按置顶状态降序排序
+            // 先按置顶状态降序排序，再按时间排序
 
-            if ("asc".equals(queryDTO.getSortOrder())) {
-                queryWrapper.orderByAsc(Meeting::getCreateTime);
-            } else {
-                queryWrapper.orderByDesc(Meeting::getCreateTime);
-            }
             queryWrapper.orderByDesc(Meeting::getIsTop);
+            if (!"asc".equals(queryDTO.getSortOrder())) {
+                queryWrapper.orderByAsc(Meeting::getStartTime);
+            } else {
+                queryWrapper.orderByDesc(Meeting::getStartTime);
+            }
 
             // 分页查询
             Page<Meeting> page = new Page<>(queryDTO.getPage(), queryDTO.getSize());
@@ -265,10 +266,10 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-            // 检查租户权限
-            if (!meeting.getTenantId().equals(tenantId)) {
-                return Result.error("无权限发布此会议");
-            }
+//            // 检查租户权限
+//            if (!meeting.getTenantId().equals(tenantId)) {
+//                return Result.error("无权限发布此会议");
+//            }
             
             // 更新会议状态为已发布
             meeting.setStatus(1); // 已发布

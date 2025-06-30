@@ -54,7 +54,7 @@ public class MeetingController {
     @Operation(summary = "获取会议详情", description = "根据ID获取会议详细信息")
     @GetMapping("/detail/{id}")
     public Result<MeetingVO> getMeetingDetail(@Parameter(description = "会议ID") @PathVariable Long id,
-                                              @RequestHeader("X-Tenant-Id") Long tenantId) {
+                                              @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
         return meetingService.getMeetingDetail(id, tenantId);
     }
     

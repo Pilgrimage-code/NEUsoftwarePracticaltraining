@@ -189,7 +189,7 @@
                       取消
                     </el-dropdown-item>
                     <el-dropdown-item
-                      :command="row.isTop ? 'untop' : 'top'"
+                      :command="row.isTop === 1 ? 'untop' : 'top'"
                       icon="Top"
                     >
                       {{ row.isTop ? '取消置顶' : '置顶' }}
@@ -520,35 +520,6 @@ const handleAction = async (command, meeting) => {
   }
 }
 
-// 提交表单
-const handleSubmit = async () => {
-  if (!meetingFormRef.value) return
-
-  try {
-    await meetingFormRef.value.validate()
-    submitLoading.value = true
-
-    let response
-    if (meetingForm.id) {
-      response = await meetingApi.updateMeeting(meetingForm.id, meetingForm)
-    } else {
-      response = await meetingApi.createMeeting(meetingForm)
-    }
-
-    if (response.code === 200) {
-      ElMessage.success(meetingForm.id ? '修改成功' : '创建成功')
-      dialogVisible.value = false
-      loadMeetingList()
-    } else {
-      ElMessage.error(response.message || (meetingForm.id ? '修改失败' : '创建失败'))
-    }
-  } catch (error) {
-    console.error('提交失败:', error)
-    ElMessage.error(meetingForm.id ? '修改失败' : '创建失败')
-  } finally {
-    submitLoading.value = false
-  }
-}
 
 // 发布会议
 const handlePublish = async (id) => {
@@ -559,9 +530,15 @@ const handlePublish = async (id) => {
       type: 'warning'
     })
     
-    // 模拟API调用
-    ElMessage.success('会议发布成功')
-    loadMeetingList()
+    // API调用
+    const result = await meetingApi.publishMeeting(id)
+    if(result.code == 200) {
+      ElMessage.success('会议发布成功')
+      loadMeetingList()
+    } else {
+      ElMessage.error(result.message || '发布失败')
+    }
+    
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('发布失败')

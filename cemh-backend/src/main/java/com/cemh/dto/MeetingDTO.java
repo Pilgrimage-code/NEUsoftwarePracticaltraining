@@ -38,8 +38,7 @@ public class MeetingDTO {
     /**
      * 会议类型：online-线上，offline-线下，hybrid-混合
      */
-    @NotBlank(message = "会议类型不能为空")
-    private String type;
+    private Integer type;
 
     /**
      * 会议状态：draft-草稿，published-已发布，ongoing-进行中，completed-已结束，cancelled-已取消
