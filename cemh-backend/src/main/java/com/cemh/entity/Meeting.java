@@ -117,10 +117,6 @@ public class Meeting extends BaseEntity {
     @TableField("is_top")
     private Integer isTop;
 
-    @Schema(description = "浏览次数")
-    @TableField("view_count")
-    private Integer viewCount;
-
     @Schema(description = "会议标签")
     @TableField("tags")
     private String tags;

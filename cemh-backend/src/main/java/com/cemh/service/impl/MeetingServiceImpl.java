@@ -48,12 +48,11 @@ public class MeetingServiceImpl implements MeetingService {
             // 设置默认值
             meeting.setStatus(0); // 草稿状态
             meeting.setCurrentParticipants(0);
-            meeting.setViewCount(0);
             meeting.setIsTop(0);
-            meeting.setViewCount(0);
-            
+
             // 保存到数据库
             int result = meetingMapper.insert(meeting);
+
             if (result > 0) {
                 return Result.success();
             } else {
@@ -80,6 +79,7 @@ public class MeetingServiceImpl implements MeetingService {
             
             // DTO转实体
             Meeting meeting = new Meeting();
+            meeting.setUpdateTime(LocalDateTime.now());
             BeanUtils.copyProperties(meetingDTO, meeting);
             
             // 更新到数据库
@@ -137,8 +137,7 @@ public class MeetingServiceImpl implements MeetingService {
             // 实体转VO
             MeetingVO meetingVO = convertToVO(meeting);
             
-            // 增加浏览次数
-            meeting.setViewCount(meeting.getViewCount() + 1);
+
             meetingMapper.updateById(meeting);
             
             return Result.success(meetingVO);
