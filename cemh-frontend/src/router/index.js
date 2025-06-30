@@ -226,6 +226,16 @@ const routes = [
           requiresAuth: true
         }
       },
+      // 数据分析Chat路由
+      {
+        path: 'chat',
+        name: 'DataAnalysisChat',
+        component: () => import('@/views/Chat/Chat.vue'),
+        meta: {
+          title: '数据分析Chat',
+          requiresAuth: true
+        }
+      },
       // 个人中心路由
       {
         path: 'profile',

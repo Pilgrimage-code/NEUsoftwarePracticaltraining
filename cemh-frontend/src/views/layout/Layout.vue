@@ -265,6 +265,15 @@ const mainMenuItems = ref([
       <path d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
     </svg>`
+  },
+  {
+    path: '/dashboard/chat',
+    title: '数据分析Chat',
+    icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+      <path d="M7 8H17M7 12H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M7 16H10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`
   }
 ])
 
