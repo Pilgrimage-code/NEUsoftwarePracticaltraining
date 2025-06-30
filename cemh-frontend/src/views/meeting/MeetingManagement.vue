@@ -660,8 +660,8 @@ const getMeetingTypeTag = (type ) => {
     "tech" : 'primary',
     "product" : 'success',
     "training" : 'warning',
-    "review" : 'info',
-    "team" : 'info'
+    "review" : 'danger',
+    "team" : 'secondary',
   }
   return tags[type] || 'info'
 }
@@ -708,6 +708,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 自定义 secondary 标签样式 */
+.el-tag.secondary {
+  background-color: #b783c6;
+  border-color: #e390e4;
+  color: #cd8ace;
+}
+
 .meeting-management {
   padding: 20px;
   background: #f5f7fa;
