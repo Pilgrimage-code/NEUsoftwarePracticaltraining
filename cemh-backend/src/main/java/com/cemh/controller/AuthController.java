@@ -3,6 +3,7 @@ package com.cemh.controller;
 import com.cemh.common.Result;
 import com.cemh.dto.LoginDTO;
 import com.cemh.service.AuthService;
+import com.cemh.service.CaptchaService;
 import com.cemh.vo.LoginVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 /**
  * 认证控制器
@@ -27,6 +29,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private CaptchaService captchaService;
 
     @Operation(summary = "用户登录", description = "用户通过用户名和密码进行登录")
     @PostMapping("/login")
@@ -97,6 +102,13 @@ public class AuthController {
         } catch (Exception e) {
             return Result.error("验证失败：" + e.getMessage());
         }
+    }
+
+    @Operation(summary = "获取图片验证码", description = "生成图片验证码并返回base64和key")
+    @GetMapping("/captcha")
+    public Result<Map<String, Object>> getCaptcha() {
+        Map<String, Object> captcha = captchaService.generateCaptcha();
+        return Result.success(captcha);
     }
 
     /**

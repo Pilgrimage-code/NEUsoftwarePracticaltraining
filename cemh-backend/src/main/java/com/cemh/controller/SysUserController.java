@@ -13,6 +13,13 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
+import com.cemh.dto.LoginDTO;
+import com.cemh.vo.LoginVO;
+import com.cemh.service.SysTenantService;
+import com.cemh.service.SysDeptService;
+import com.cemh.service.CaptchaService;
+import com.cemh.dto.RegisterUserDTO;
+
 /**
  * 用户管理控制器
  */
@@ -24,6 +31,15 @@ public class SysUserController {
     
     @Autowired
     private SysUserService sysUserService;
+    
+    @Autowired
+    private SysTenantService sysTenantService;
+    
+    @Autowired
+    private SysDeptService sysDeptService;
+    
+    @Autowired
+    private CaptchaService captchaService;
     
     @Operation(summary = "分页查询用户列表")
     @GetMapping
@@ -145,6 +161,44 @@ public class SysUserController {
     public Result<List<SysUser>> getUsersByDept(@Parameter(description = "部门ID") @PathVariable Long deptId,
                                                 @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
         return sysUserService.getUsersByDept(deptId, tenantId);
+    }
+    
+    @Operation(summary = "用户注册")
+    @PostMapping("/register")
+    public Result<LoginVO> registerUser(@RequestBody RegisterUserDTO dto) {
+        // 校验验证码（假设有CaptchaService）
+        if (!captchaService.verify(dto.getCaptchaKey(), dto.getCaptcha())) {
+            return Result.error("验证码错误");
+        }
+        // 校验租户
+        if (dto.getTenantId() == null || sysTenantService.getById(dto.getTenantId()) == null) {
+            return Result.error("所属企业不存在");
+        }
+        // 校验部门
+        if (dto.getDeptId() == null || sysDeptService.getById(dto.getDeptId()) == null) {
+            return Result.error("所属部门不存在");
+        }
+        // 构造用户
+        SysUser user = new SysUser();
+        user.setTenantId(dto.getTenantId());
+        user.setDeptId(dto.getDeptId());
+        user.setUsername(dto.getUsername());
+        user.setNickname(dto.getNickname());
+        user.setPassword(dto.getPassword());
+        user.setPhone(dto.getPhone());
+        user.setEmail(dto.getEmail());
+        user.setAvatar(dto.getAvatar());
+        user.setStatus(1);
+        Result<Void> res = sysUserService.createUser(user);
+        if (!res.isSuccess()) return Result.error(res.getMessage());
+        // 查询新用户
+        SysUser created = sysUserService.getByUsername(dto.getUsername(), dto.getTenantId()).getData();
+        LoginVO vo = new LoginVO();
+        vo.setUserId(created.getId());
+        vo.setUsername(created.getUsername());
+        vo.setNickname(created.getNickname());
+        vo.setAvatar(created.getAvatar());
+        return Result.success(vo);
     }
 }
 
