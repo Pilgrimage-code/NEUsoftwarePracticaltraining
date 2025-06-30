@@ -127,8 +127,8 @@
         
         <el-table-column prop="type" label="会议类型" width="120">
           <template #default="{ row }">
-            <el-tag :type="getMeetingTypeTag(row.type)">
-              {{ getMeetingTypeText(row.type) }}
+            <el-tag :type="getMeetingTypeTag(row.tags)">
+              {{ getMeetingTypeText(row.tags) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -655,25 +655,29 @@ const formatDateTime = (dateString) => {
 }
 
 // 获取会议类型标签
-const getMeetingTypeTag = (type) => {
+const getMeetingTypeTag = (type ) => {
   const tags = {
-    1: 'primary',
-    2: 'success',
-    3: 'warning',
-    4: 'info'
+    "tech" : 'primary',
+    "product" : 'success',
+    "training" : 'warning',
+    "review" : 'info',
+    "team" : 'info'
   }
   return tags[type] || 'info'
 }
 
 // 获取会议类型文本
-const getMeetingTypeText = (type) => {
+const getMeetingTypeText = (tags) => {
   const texts = {
-    1: '技术交流',
-    2: '产品发布',
-    3: '培训课程',
-    4: '其他'
+    "tech" : '技术分享',
+    "product" : '产品讨论',
+    "training" : '培训学习',
+    "review" : '项目评审',
+    "team" : '团队建设',
+    "" : '其他',
+
   }
-  return texts[type] || '其他'
+  return texts[tags] || '其他'
 }
 
 // 获取会议状态标签

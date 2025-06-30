@@ -304,16 +304,31 @@ export default {
         }
         const meetingData = mockData.data;
 
+        // 定义一个辅助函数处理时间格式
+        const parseDate = (dateString) => {
+          if (!dateString) return '';
+          console.log('原始时间字符串:', dateString);
+          // 正则匹配时区部分，补全时区格式为 ±HH:MM
+          let standardDateString = dateString.replace(/([+-])(\d{2})(\d{2})?$/, (_, sign, hours, minutes = '00') => {
+            return `${sign}${hours}:${minutes}`;
+          });
+          console.log('修正后的时间字符串:', standardDateString);
+          const date = new Date(standardDateString);
+          console.log('创建的 Date 对象:', date);
+          return isNaN(date.getTime()) ? '' : date;
+        };
+
         // 手动赋值，处理数据类型
         meetingForm.title = meetingData.title || ''
         meetingForm.description = meetingData.description || ''
         meetingForm.type = String(meetingData.type) || '' // 确保类型为字符串
         meetingForm.status = String(meetingData.status) || '' // 确保状态为字符串
-        meetingForm.startTime = meetingData.startTime ? new Date(meetingData.startTime) : ''
-        meetingForm.endTime = meetingData.endTime ? new Date(meetingData.endTime) : ''
+        // Use the parseDate function to handle the startTime
+        meetingForm.startTime = parseDate(meetingData.startTime) || ''
+        meetingForm.endTime = parseDate(meetingData.endTime) || ''
         meetingForm.location = meetingData.location || ''
         meetingForm.maxParticipants = Number(meetingData.maxParticipants) || 0
-        meetingForm.registrationDeadline = meetingData.registrationDeadline ? new Date(meetingData.registrationDeadline) : ''
+        meetingForm.registrationDeadline = parseDate(meetingData.registrationDeadline) || ''
         meetingForm.requiresApproval = Boolean(meetingData.requiresApproval) || false
         meetingForm.fee = Number(meetingData.fee) || 0
         meetingForm.requirements = meetingData.requirements || ''
@@ -390,7 +405,7 @@ export default {
           meetingForm.id = route.params.id
          result = await meetingApi.updateMeeting(meetingForm)
         } else {
-          esult = await meetingApi.createMeeting(meetingForm)
+          result = await meetingApi.createMeeting(meetingForm)
         }
         if(result.code === 200){
           ElMessage.success(isEdit.value ? '会议更新成功' : '会议创建成功')
@@ -416,15 +431,10 @@ export default {
     
     // 组件挂载时的初始化
     onMounted(() => {
-      console.log('路由名称:', route.name);
-      console.log('路由参数:', route.params);
+
       if (isEdit.value && route.params.id) {
         getMeetingDetail(route.params.id)
-      } else {
-        console.log('未进入编辑模式或缺少 ID 参数');
-        loading.value = false
-      }
-
+      } 
     })
     
     return {
