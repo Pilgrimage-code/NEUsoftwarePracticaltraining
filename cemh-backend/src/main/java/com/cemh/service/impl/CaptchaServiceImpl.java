@@ -22,8 +22,16 @@ public class CaptchaServiceImpl implements CaptchaService {
         String code = captcha.text().toLowerCase();
         String key = UUID.randomUUID().toString();
         CAPTCHA_STORE.put(key, code);
+
+        String base64 = captcha.toBase64();
+        String img;
+        if (base64.startsWith("data:image")) {
+            img = base64;
+        } else {
+            img = "data:image/png;base64," + base64;
+        }
         return Map.of(
-            "img", "data:image/png;base64," + captcha.toBase64(),
+            "img", img,
             "key", key
         );
     }
