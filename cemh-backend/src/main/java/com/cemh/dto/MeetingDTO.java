@@ -109,5 +109,40 @@ public class MeetingDTO {
      * 租户ID
      */
     private Long tenantId;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Integer getType() { return type; }
+    public void setType(Integer type) { this.type = type; }
+    public Integer getStatus() { return status; }
+    public void setStatus(Integer status) { this.status = status; }
+    public OffsetDateTime getStartTime() { return startTime; }
+    public void setStartTime(OffsetDateTime startTime) { this.startTime = startTime; }
+    public OffsetDateTime getEndTime() { return endTime; }
+    public void setEndTime(OffsetDateTime endTime) { this.endTime = endTime; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+    public Integer getMaxParticipants() { return maxParticipants; }
+    public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
+    public OffsetDateTime getRegistrationDeadline() { return registrationDeadline; }
+    public void setRegistrationDeadline(OffsetDateTime registrationDeadline) { this.registrationDeadline = registrationDeadline; }
+    public Boolean getRequiresApproval() { return requiresApproval; }
+    public void setRequiresApproval(Boolean requiresApproval) { this.requiresApproval = requiresApproval; }
+    public Double getFee() { return fee; }
+    public void setFee(Double fee) { this.fee = fee; }
+    public String getRequirements() { return requirements; }
+    public void setRequirements(String requirements) { this.requirements = requirements; }
+    public String getTags() { return tags; }
+    public void setTags(String tags) { this.tags = tags; }
+    public String getCoverImage() { return coverImage; }
+    public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
+    public Long getTenantId() { return tenantId; }
+    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
 }
 

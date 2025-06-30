@@ -381,5 +381,13 @@ public class SysUserServiceImpl implements SysUserService {
             return Result.error("获取部门用户失败：" + e.getMessage());
         }
     }
+    
+    @Override
+    public Result<SysUser> getByUsername(String username, Long tenantId) {
+        SysUser user = sysUserMapper.selectOne(new QueryWrapper<SysUser>()
+                .eq("username", username)
+                .eq("tenant_id", tenantId));
+        return user != null ? Result.success(user) : Result.error("用户不存在");
+    }
 }
 

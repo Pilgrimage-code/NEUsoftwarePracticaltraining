@@ -180,7 +180,7 @@
 
           <!-- 底部信息 -->
           <div class="form-footer">
-            <p>还没有账户？ <a href="#" class="register-link">立即注册</a></p>
+            <p>还没有账户？ <a href="/register" class="register-link">立即注册</a></p>
             <div class="footer-links">
               <a href="#">服务条款</a>
               <span>·</span>
