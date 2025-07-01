@@ -93,228 +93,160 @@
         <div class="stat-bg-pattern"></div>
       </div>
     </div>
+    <!-- 统计卡片网格结束 -->
 
-    <!-- 主要内容区域 -->
-    <div class="main-content">
-      <!-- 左侧内容 -->
-      <div class="left-section">
-        <!-- 即将开始的会议 -->
-        <div class="content-card">
+    <!-- 数据分析区整体迁移自Analytics.vue -->
+    <div class="analytics modern-page">
+      <!-- 页面头部（可选，如需显示可保留） -->
+      <!-- <div class="page-header">...</div> -->
+
+      <!-- 概览统计（可选，如需显示可保留） -->
+      <!-- <div class="overview-stats">...</div> -->
+
+      <!-- 图表区域 -->
+      <div class="charts-section">
+        <!-- 会议趋势图 -->
+        <div class="chart-card">
           <div class="card-header">
-            <h3>
-              <div class="header-icon">📅</div>
-              即将开始的会议
-            </h3>
-            <button class="view-all-btn" @click="navigateTo('/dashboard/meetings')">
-              查看全部
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8.91 19.92L15.43 13.4C16.2 12.63 16.2 11.37 15.43 10.6L8.91 4.08" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
+            <h2>会议趋势分析</h2>
+            <el-radio-group v-model="trendPeriod" @change="updateTrendChart">
+              <el-radio-button label="week">最近7天</el-radio-button>
+              <el-radio-button label="month">最近30天</el-radio-button>
+              <el-radio-button label="quarter">最近3个月</el-radio-button>
+            </el-radio-group>
           </div>
-          
-          <div class="meeting-timeline">
-            <div v-for="meeting in upcomingMeetings" :key="meeting.id" class="timeline-item" @click="viewMeetingDetail(meeting.id)">
-              <div class="timeline-marker">
-                <div class="marker-dot"></div>
-                <div class="marker-line"></div>
-              </div>
-              <div class="timeline-content">
-                <div class="meeting-time">
-                  <span class="time">{{ formatTime(meeting.startTime) }}</span>
-                  <span class="date">{{ formatDate(meeting.startTime) }}</span>
-                </div>
-                <div class="meeting-details">
-                  <h4>{{ meeting.title }}</h4>
-                  <div class="meeting-meta">
-                    <span class="location">📍 {{ meeting.location }}</span>
-                    <span class="participants">👥 {{ meeting.registrationCount }}人</span>
-                  </div>
-                  <div class="meeting-tags">
-                    <span class="tag" :class="getMeetingTypeClass(meeting.type)">
-                      {{ getMeetingTypeText(meeting.type) }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="card-body">
+            <div ref="trendChartRef" class="chart-container"></div>
           </div>
         </div>
-
-        <!-- 数据分析图表 -->
-        <div class="content-card">
+        <!-- 会议类型分布 -->
+        <div class="chart-card">
           <div class="card-header">
-            <h3>
-              <div class="header-icon">📊</div>
-              数据分析
-            </h3>
-            <div class="chart-controls">
-              <button class="control-btn active">本周</button>
-              <button class="control-btn">本月</button>
-              <button class="control-btn">本年</button>
-            </div>
+            <h2>会议类型分布</h2>
           </div>
-          
-          <div class="chart-container">
-            <div class="chart-placeholder">
-              <div class="chart-bars">
-                <div class="bar" style="height: 60%"></div>
-                <div class="bar" style="height: 80%"></div>
-                <div class="bar" style="height: 45%"></div>
-                <div class="bar" style="height: 90%"></div>
-                <div class="bar" style="height: 70%"></div>
-                <div class="bar" style="height: 55%"></div>
-                <div class="bar" style="height: 85%"></div>
-              </div>
-              <div class="chart-labels">
-                <span>周一</span>
-                <span>周二</span>
-                <span>周三</span>
-                <span>周四</span>
-                <span>周五</span>
-                <span>周六</span>
-                <span>周日</span>
-              </div>
-            </div>
+          <div class="card-body">
+            <div ref="typeChartRef" class="chart-container"></div>
           </div>
         </div>
       </div>
 
-      <!-- 右侧内容 -->
-      <div class="right-section">
-        <!-- 快速操作 -->
-        <div class="content-card">
+      <!-- 详细数据 -->
+      <div class="data-section">
+        <!-- 部门参与度 -->
+        <div class="data-card">
           <div class="card-header">
-            <h3>
-              <div class="header-icon">⚡</div>
-              快速操作
-            </h3>
+            <h2>部门参与度排行</h2>
           </div>
-          
-          <div class="quick-actions">
-            <button class="action-btn primary" @click="navigateTo('/dashboard/meetings/create')">
-              <div class="btn-icon">➕</div>
-              <span>创建会议</span>
-            </button>
-            
-            <button class="action-btn success" @click="navigateTo('/dashboard/news/create')">
-              <div class="btn-icon">📝</div>
-              <span>发布资讯</span>
-            </button>
-            
-            <button class="action-btn info" @click="navigateTo('/dashboard/users')">
-              <div class="btn-icon">👥</div>
-              <span>用户管理</span>
-            </button>
-            
-            <button class="action-btn warning" @click="navigateTo('/dashboard/departments')">
-              <div class="btn-icon">🏢</div>
-              <span>部门管理</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- 系统状态 -->
-        <div class="content-card">
-          <div class="card-header">
-            <h3>
-              <div class="header-icon">💻</div>
-              系统状态
-            </h3>
-          </div>
-          
-          <div class="system-status">
-            <div class="status-item">
-              <div class="status-label">CPU使用率</div>
-              <div class="status-bar">
-                <div class="status-fill" style="width: 45%"></div>
-              </div>
-              <div class="status-value">45%</div>
-            </div>
-            
-            <div class="status-item">
-              <div class="status-label">内存使用率</div>
-              <div class="status-bar">
-                <div class="status-fill" style="width: 62%"></div>
-              </div>
-              <div class="status-value">62%</div>
-            </div>
-            
-            <div class="status-item">
-              <div class="status-label">存储空间</div>
-              <div class="status-bar">
-                <div class="status-fill" style="width: 78%"></div>
-              </div>
-              <div class="status-value">78%</div>
-            </div>
-            
-            <div class="status-item">
-              <div class="status-label">网络延迟</div>
-              <div class="status-bar">
-                <div class="status-fill" style="width: 25%"></div>
-              </div>
-              <div class="status-value">25ms</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 最新通知 -->
-        <div class="content-card">
-          <div class="card-header">
-            <h3>
-              <div class="header-icon">🔔</div>
-              最新通知
-            </h3>
-          </div>
-          
-          <div class="notification-list">
-            <div class="notification-item">
-              <div class="notification-avatar success">✓</div>
-              <div class="notification-content">
-                <h4>系统更新完成</h4>
-                <p>测盟汇管理系统已更新至v1.0.0版本</p>
-                <span class="notification-time">2小时前</span>
-              </div>
-            </div>
-            
-            <div class="notification-item">
-              <div class="notification-avatar info">ℹ</div>
-              <div class="notification-content">
-                <h4>会议提醒</h4>
-                <p>您有3个会议即将开始，请及时参加</p>
-                <span class="notification-time">1天前</span>
-              </div>
-            </div>
-            
-            <div class="notification-item">
-              <div class="notification-avatar warning">⚠</div>
-              <div class="notification-content">
-                <h4>存储空间提醒</h4>
-                <p>系统存储空间使用率已达80%</p>
-                <span class="notification-time">3天前</span>
+          <div class="card-body">
+            <div class="department-list">
+              <div 
+                v-for="(dept, index) in departmentData" 
+                :key="dept.name"
+                class="department-item"
+              >
+                <div class="dept-rank">{{ index + 1 }}</div>
+                <div class="dept-info">
+                  <div class="dept-name">{{ dept.name }}</div>
+                  <div class="dept-stats">
+                    {{ dept.meetings }}场会议 • {{ dept.participants }}人参与
+                  </div>
+                </div>
+                <div class="dept-progress">
+                  <el-progress 
+                    :percentage="dept.participation" 
+                    :stroke-width="8"
+                    :show-text="false"
+                  />
+                  <span class="progress-text">{{ dept.participation }}%</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- 热门会议 -->
-        <div class="content-card">
+        <!-- 热门时段 -->
+        <div class="data-card">
           <div class="card-header">
-            <h3>
-              <div class="header-icon">🔥</div>
-              热门会议
-            </h3>
+            <h2>热门会议时段</h2>
           </div>
-          
-          <div class="popular-list">
-            <div v-for="(meeting, index) in popularMeetings.slice(0, 5)" :key="meeting.id" class="popular-item" @click="viewMeetingDetail(meeting.id)">
-              <div class="rank" :class="{ 'top-rank': index < 3 }">{{ index + 1 }}</div>
-              <div class="popular-content">
-                <h4>{{ meeting.title }}</h4>
-                <p>{{ meeting.registrationCount }}人报名</p>
+          <div class="card-body">
+            <div ref="heatmapChartRef" class="chart-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 用户行为分析 -->
+      <div class="behavior-section">
+        <div class="modern-card">
+          <div class="card-header">
+            <h2>用户行为分析</h2>
+            <el-tabs v-model="behaviorTab" @tab-change="updateBehaviorData">
+              <el-tab-pane label="活跃度" name="activity" />
+              <el-tab-pane label="参与度" name="participation" />
+              <el-tab-pane label="满意度" name="satisfaction" />
+            </el-tabs>
+          </div>
+          <div class="card-body">
+            <div class="behavior-metrics">
+              <div class="metric-item">
+                <div class="metric-icon">
+                  <el-icon><DataAnalysis /></el-icon>
+                </div>
+                <div class="metric-content">
+                  <div class="metric-value">{{ behaviorMetrics.primary.value }}</div>
+                  <div class="metric-label">{{ behaviorMetrics.primary.label }}</div>
+                </div>
               </div>
-              <div class="popular-trend">
-                <span class="trend-icon">📈</span>
+              <div class="metric-item">
+                <div class="metric-icon">
+                  <el-icon><TrendCharts /></el-icon>
+                </div>
+                <div class="metric-content">
+                  <div class="metric-value">{{ behaviorMetrics.secondary.value }}</div>
+                  <div class="metric-label">{{ behaviorMetrics.secondary.label }}</div>
+                </div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-icon">
+                  <el-icon><Star /></el-icon>
+                </div>
+                <div class="metric-content">
+                  <div class="metric-value">{{ behaviorMetrics.tertiary.value }}</div>
+                  <div class="metric-label">{{ behaviorMetrics.tertiary.label }}</div>
+                </div>
+              </div>
+            </div>
+            <div ref="behaviorChartRef" class="chart-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 实时数据 -->
+      <div class="realtime-section">
+        <div class="modern-card">
+          <div class="card-header">
+            <h2>实时数据监控</h2>
+            <div class="realtime-indicator">
+              <div class="indicator-dot"></div>
+              <span>实时更新</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="realtime-grid">
+              <div class="realtime-item">
+                <div class="realtime-label">当前在线用户</div>
+                <div class="realtime-value">{{ realtimeData.onlineUsers }}</div>
+              </div>
+              <div class="realtime-item">
+                <div class="realtime-label">进行中的会议</div>
+                <div class="realtime-value">{{ realtimeData.activeMeetings }}</div>
+              </div>
+              <div class="realtime-item">
+                <div class="realtime-label">今日新增用户</div>
+                <div class="realtime-value">{{ realtimeData.newUsers }}</div>
+              </div>
+              <div class="realtime-item">
+                <div class="realtime-label">系统响应时间</div>
+                <div class="realtime-value">{{ realtimeData.responseTime }}ms</div>
               </div>
             </div>
           </div>
@@ -325,9 +257,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { ElMessage } from 'element-plus'
+import * as echarts from 'echarts'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -340,45 +274,210 @@ const stats = reactive({
   totalRegistrations: 2341
 })
 
-// 即将开始的会议
-const upcomingMeetings = ref([
-  {
-    id: 1,
-    title: '2024年度技术交流大会',
-    location: '北京国际会议中心',
-    startTime: '2024-06-20T09:00:00',
-    type: 1,
-    status: 1,
-    registrationCount: 156
-  },
-  {
-    id: 2,
-    title: '产品发布会',
-    location: '上海展览中心',
-    startTime: '2024-06-22T14:00:00',
-    type: 2,
-    status: 1,
-    registrationCount: 89
-  },
-  {
-    id: 3,
-    title: '培训课程：项目管理实践',
-    location: '在线会议',
-    startTime: '2024-06-25T10:00:00',
-    type: 3,
-    status: 1,
-    registrationCount: 234
-  }
+// 数据分析区相关响应式数据
+const trendPeriod = ref('month')
+const behaviorTab = ref('activity')
+
+const departmentData = ref([
+  { name: '技术部', meetings: 45, participants: 128, participation: 92 },
+  { name: '销售部', meetings: 38, participants: 95, participation: 88 },
+  { name: '市场部', meetings: 32, participants: 76, participation: 85 },
+  { name: '人事部', meetings: 28, participants: 52, participation: 82 },
+  { name: '财务部', meetings: 25, participants: 48, participation: 79 }
 ])
 
-// 热门会议
-const popularMeetings = ref([
-  { id: 1, title: '2024年度技术交流大会', registrationCount: 456 },
-  { id: 2, title: 'AI技术发展趋势研讨会', registrationCount: 389 },
-  { id: 3, title: '数字化转型实践分享', registrationCount: 267 },
-  { id: 4, title: '创新创业论坛', registrationCount: 234 },
-  { id: 5, title: '项目管理最佳实践', registrationCount: 198 }
-])
+const behaviorMetrics = ref({
+  primary: { value: '4.2', label: '平均活跃度' },
+  secondary: { value: '89%', label: '参与率' },
+  tertiary: { value: '4.6', label: '满意度评分' }
+})
+
+const realtimeData = ref({
+  onlineUsers: 234,
+  activeMeetings: 12,
+  newUsers: 18,
+  responseTime: 156
+})
+
+// 图表引用
+const trendChartRef = ref()
+const typeChartRef = ref()
+const heatmapChartRef = ref()
+const behaviorChartRef = ref()
+
+let trendChart = null
+let typeChart = null
+let heatmapChart = null
+let behaviorChart = null
+let realtimeTimer = null
+
+// 图表初始化方法
+const initCharts = async () => {
+  await nextTick()
+  initTrendChart()
+  initTypeChart()
+  initHeatmapChart()
+  initBehaviorChart()
+}
+
+const initTrendChart = () => {
+  if (!trendChartRef.value) return
+  trendChart = echarts.init(trendChartRef.value)
+  const option = {
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+    legend: { data: ['会议数量', '参与人数'] },
+    xAxis: { type: 'category', data: ['06-14', '06-15', '06-16', '06-17', '06-18', '06-19', '06-20'] },
+    yAxis: [
+      { type: 'value', name: '会议数量', position: 'left' },
+      { type: 'value', name: '参与人数', position: 'right' }
+    ],
+    series: [
+      { name: '会议数量', type: 'line', data: [12, 15, 18, 14, 22, 19, 25], smooth: true, itemStyle: { color: '#667eea' } },
+      { name: '参与人数', type: 'bar', yAxisIndex: 1, data: [156, 189, 234, 178, 298, 245, 325], itemStyle: { color: '#f093fb' } }
+    ]
+  }
+  trendChart.setOption(option)
+}
+
+const initTypeChart = () => {
+  if (!typeChartRef.value) return
+  typeChart = echarts.init(typeChartRef.value)
+  const option = {
+    tooltip: { trigger: 'item', formatter: '{a} <br/>{b}: {c} ({d}%)' },
+    legend: { orient: 'vertical', left: 'left' },
+    series: [
+      {
+        name: '会议类型', type: 'pie', radius: ['40%', '70%'], avoidLabelOverlap: false,
+        label: { show: false, position: 'center' },
+        emphasis: { label: { show: true, fontSize: '18', fontWeight: 'bold' } },
+        labelLine: { show: false },
+        data: [
+          { value: 335, name: '部门会议' },
+          { value: 310, name: '项目会议' },
+          { value: 234, name: '培训会议' },
+          { value: 135, name: '客户会议' },
+          { value: 148, name: '其他会议' }
+        ]
+      }
+    ]
+  }
+  typeChart.setOption(option)
+}
+
+const initHeatmapChart = () => {
+  if (!heatmapChartRef.value) return
+  heatmapChart = echarts.init(heatmapChartRef.value)
+  const hours = ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']
+  const days = ['周一', '周二', '周三', '周四', '周五']
+  const data = []
+  for (let i = 0; i < days.length; i++) {
+    for (let j = 0; j < hours.length; j++) {
+      data.push([j, i, Math.floor(Math.random() * 20)])
+    }
+  }
+  const option = {
+    tooltip: { position: 'top', formatter: params => `${days[params.value[1]]} ${hours[params.value[0]]}<br/>会议数量: ${params.value[2]}` },
+    grid: { height: '50%', top: '10%' },
+    xAxis: { type: 'category', data: hours, splitArea: { show: true } },
+    yAxis: { type: 'category', data: days, splitArea: { show: true } },
+    visualMap: { min: 0, max: 20, calculable: true, orient: 'horizontal', left: 'center', bottom: '15%', inRange: { color: ['#e0f3ff', '#667eea'] } },
+    series: [{ name: '会议热度', type: 'heatmap', data, label: { show: true }, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' } } }]
+  }
+  heatmapChart.setOption(option)
+}
+
+const initBehaviorChart = () => {
+  if (!behaviorChartRef.value) return
+  behaviorChart = echarts.init(behaviorChartRef.value)
+  updateBehaviorChart()
+}
+
+const updateBehaviorChart = () => {
+  if (!behaviorChart) return
+  let option = {}
+  if (behaviorTab.value === 'activity') {
+    option = {
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'category', data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'] },
+      yAxis: { type: 'value' },
+      series: [{ data: [12, 8, 45, 78, 65, 32], type: 'line', smooth: true, areaStyle: { color: 'rgba(102, 126, 234, 0.3)' }, itemStyle: { color: '#667eea' } }]
+    }
+  } else if (behaviorTab.value === 'participation') {
+    option = {
+      tooltip: { trigger: 'item' },
+      series: [{ type: 'pie', radius: '50%', data: [ { value: 1048, name: '积极参与' }, { value: 735, name: '一般参与' }, { value: 580, name: '被动参与' }, { value: 484, name: '很少参与' } ] }]
+    }
+  } else {
+    option = {
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'category', data: ['1星', '2星', '3星', '4星', '5星'] },
+      yAxis: { type: 'value' },
+      series: [{ data: [5, 12, 45, 128, 234], type: 'bar', itemStyle: { color: '#f093fb' } }]
+    }
+  }
+  behaviorChart.setOption(option)
+}
+
+const updateTrendChart = () => {
+  ElMessage.info('更新趋势图数据')
+}
+
+const updateBehaviorData = () => {
+  if (behaviorTab.value === 'activity') {
+    behaviorMetrics.value = {
+      primary: { value: '4.2', label: '平均活跃度' },
+      secondary: { value: '89%', label: '在线时长' },
+      tertiary: { value: '156', label: '日均操作' }
+    }
+  } else if (behaviorTab.value === 'participation') {
+    behaviorMetrics.value = {
+      primary: { value: '87%', label: '参与率' },
+      secondary: { value: '3.2', label: '平均发言' },
+      tertiary: { value: '92%', label: '出席率' }
+    }
+  } else {
+    behaviorMetrics.value = {
+      primary: { value: '4.6', label: '满意度评分' },
+      secondary: { value: '94%', label: '推荐意愿' },
+      tertiary: { value: '4.3', label: '体验评分' }
+    }
+  }
+  updateBehaviorChart()
+}
+
+const startRealtimeUpdate = () => {
+  realtimeTimer = setInterval(() => {
+    realtimeData.value.onlineUsers += Math.floor(Math.random() * 10 - 5)
+    realtimeData.value.activeMeetings += Math.floor(Math.random() * 3 - 1)
+    realtimeData.value.newUsers += Math.floor(Math.random() * 5)
+    realtimeData.value.responseTime += Math.floor(Math.random() * 20 - 10)
+    realtimeData.value.onlineUsers = Math.max(200, Math.min(300, realtimeData.value.onlineUsers))
+    realtimeData.value.activeMeetings = Math.max(8, Math.min(20, realtimeData.value.activeMeetings))
+    realtimeData.value.responseTime = Math.max(100, Math.min(200, realtimeData.value.responseTime))
+  }, 3000)
+}
+
+const resizeCharts = () => {
+  trendChart?.resize()
+  typeChart?.resize()
+  heatmapChart?.resize()
+  behaviorChart?.resize()
+}
+
+onMounted(() => {
+  initCharts()
+  startRealtimeUpdate()
+  window.addEventListener('resize', resizeCharts)
+})
+
+onUnmounted(() => {
+  if (realtimeTimer) clearInterval(realtimeTimer)
+  window.removeEventListener('resize', resizeCharts)
+  trendChart?.dispose()
+  typeChart?.dispose()
+  heatmapChart?.dispose()
+  behaviorChart?.dispose()
+})
 
 // 导航方法
 const navigateTo = (path) => {
@@ -440,13 +539,36 @@ const getMeetingTypeText = (type) => {
   }
   return texts[type] || '其他'
 }
-
-onMounted(() => {
-  // 初始化数据
-})
 </script>
 
 <style scoped>
+:root {
+  --spacing-2xl: 32px;
+  --spacing-xl: 28px;
+  --spacing-lg: 24px;
+  --spacing-md: 16px;
+  --spacing-sm: 8px;
+  --spacing-xs: 4px;
+  --bg-primary: #fff;
+  --bg-secondary: #f8fafc;
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --font-size-3xl: 32px;
+  --font-size-2xl: 24px;
+  --font-size-xl: 20px;
+  --font-size-lg: 16px;
+  --font-size-sm: 14px;
+  --primary-color: #667eea;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --text-primary: #1a1a1a;
+  --text-secondary: #64748b;
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+  --shadow-lg: 0 20px 40px rgba(0,0,0,0.15);
+  --transition-fast: 0.3s;
+}
+
 .modern-dashboard {
   padding: 24px;
   background: #f8fafc;
@@ -1130,300 +1252,236 @@ onMounted(() => {
   }
 }
 </style>
+
 <style>
-.meeting-meta {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  color: #909399;
+.analytics {
+  padding: var(--spacing-2xl);
 }
 
-.participants .el-icon {
-  margin-right: 4px;
-}
-
-.meeting-status {
-  margin-left: 16px;
-}
-
-/* 资讯列表 */
-.news-list {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.news-item {
-  display: flex;
-  padding: 16px 0;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.news-item:hover {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 16px 12px;
-}
-
-.news-item:last-child {
-  border-bottom: none;
-}
-
-.news-cover {
-  width: 80px;
-  height: 60px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-right: 16px;
-  flex-shrink: 0;
-}
-
-.news-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.news-content {
-  flex: 1;
-}
-
-.news-content h4 {
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  margin: 0 0 8px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.news-summary {
-  font-size: 14px;
-  color: #606266;
-  margin: 0 0 8px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.news-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  color: #909399;
-}
-
-.views {
-  display: flex;
-  align-items: center;
-}
-
-.views .el-icon {
-  margin-right: 4px;
-}
-
-/* 快速操作 */
-.quick-actions {
+.charts-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
 }
 
-.action-btn {
-  height: 60px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+.chart-card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
 }
 
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.action-btn .el-icon {
-  margin-right: 8px;
-}
-
-/* 系统通知 */
-.notification-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.notification-item {
+.card-header {
   display: flex;
-  align-items: flex-start;
-  padding: 16px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.notification-item:last-child {
-  border-bottom: none;
-}
-
-.notification-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  margin-right: 12px;
-  flex-shrink: 0;
-  color: white;
-  font-size: 16px;
+  margin-bottom: var(--spacing-lg);
 }
 
-.notification-icon.success {
-  background: #67c23a;
-}
-
-.notification-icon.info {
-  background: #409eff;
-}
-
-.notification-icon.warning {
-  background: #e6a23c;
-}
-
-.notification-content {
-  flex: 1;
-}
-
-.notification-content h4 {
-  font-size: 14px;
-  font-weight: 500;
-  color: #303133;
-  margin: 0 0 4px 0;
-}
-
-.notification-content p {
-  font-size: 12px;
-  color: #606266;
-  margin: 0 0 4px 0;
-}
-
-.notification-time {
-  font-size: 11px;
-  color: #909399;
-}
-
-/* 热门会议 */
-.popular-meetings {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.popular-meeting-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.popular-meeting-item:hover {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.popular-meeting-item:last-child {
-  border-bottom: none;
-}
-
-.rank {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #409eff;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
+.card-header h2 {
+  font-size: var(--font-size-xl);
   font-weight: 600;
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-.popular-meeting-item:first-child .rank {
-  background: #f56c6c;
-}
-
-.popular-meeting-item:nth-child(2) .rank {
-  background: #e6a23c;
-}
-
-.popular-meeting-item:nth-child(3) .rank {
-  background: #67c23a;
-}
-
-.popular-meeting-item .meeting-info {
-  flex: 1;
-}
-
-.popular-meeting-item .meeting-info h4 {
-  font-size: 14px;
-  font-weight: 500;
-  color: #303133;
-  margin: 0 0 4px 0;
-}
-
-.popular-meeting-item .meeting-info p {
-  font-size: 12px;
-  color: #909399;
+  color: var(--text-primary);
   margin: 0;
 }
 
-/* 空状态 */
-.empty-state {
-  padding: 40px 0;
-  text-align: center;
+.chart-container {
+  height: 300px;
+  width: 100%;
 }
 
-/* 响应式设计 */
+.data-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.data-card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.department-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.department-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.dept-rank {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.dept-info {
+  flex: 1;
+}
+
+.dept-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.dept-stats {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.dept-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-width: 120px;
+}
+
+.progress-text {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.behavior-section,
+.realtime-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.behavior-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+}
+
+.metric-value {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.metric-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.realtime-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--success-color);
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success-color);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.realtime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.realtime-item {
+  text-align: center;
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.realtime-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.realtime-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 @media (max-width: 1200px) {
-  .main-content {
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+  .data-section {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .dashboard-container {
-    padding: 15px;
+  .analytics {
+    padding: var(--spacing-lg);
   }
-  
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-  }
-  
-  .quick-actions {
+  .charts-section {
     grid-template-columns: 1fr;
   }
-  
-  .meeting-item {
-    flex-direction: column;
-    align-items: flex-start;
+  .data-section {
+    grid-template-columns: 1fr;
   }
-  
-  .meeting-time {
-    margin-right: 0;
-    margin-bottom: 8px;
+  .behavior-metrics {
+    grid-template-columns: 1fr;
   }
-  
-  .meeting-status {
-    margin-left: 0;
-    margin-top: 8px;
+  .realtime-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
