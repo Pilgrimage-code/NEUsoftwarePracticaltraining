@@ -103,10 +103,10 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-//            // 检查租户权限
-//            if (!meeting.getTenantId().equals(tenantId)) {
-//                return Result.error("无权限删除此会议");
-//            }
+            // 检查租户权限（非空时才检查）
+            if (tenantId != null && meeting.getTenantId() != null && !meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限删除此会议");
+            }
             
             // 删除会议
             int result = meetingMapper.deleteById(id);
@@ -129,10 +129,10 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-//            // 检查租户权限
-//            if (!meeting.getTenantId().equals(tenantId)) {
-//                return Result.error("无权限查看此会议");
-//            }
+            // 检查租户权限（非空时才检查）
+            if (tenantId != null && meeting.getTenantId() != null && !meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限查看此会议");
+            }
             
             // 实体转VO
             MeetingVO meetingVO = convertToVO(meeting);
@@ -172,7 +172,7 @@ public class MeetingServiceImpl implements MeetingService {
                 queryWrapper.eq(Meeting::getCreateBy, queryDTO.getCreateBy());
             }
             
-            // 租户ID
+            // 租户ID - 只有在tenantId不为空时才添加条件
             if (queryDTO.getTenantId() != null) {
                 queryWrapper.eq(Meeting::getTenantId, queryDTO.getTenantId());
             }
@@ -234,8 +234,8 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-            // 检查租户权限
-            if (!meeting.getTenantId().equals(tenantId)) {
+            // 检查租户权限（非空时才检查）
+            if (tenantId != null && meeting.getTenantId() != null && !meeting.getTenantId().equals(tenantId)) {
                 return Result.error("无权限取消此会议");
             }
             
@@ -265,10 +265,10 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-//            // 检查租户权限
-//            if (!meeting.getTenantId().equals(tenantId)) {
-//                return Result.error("无权限发布此会议");
-//            }
+            // 检查租户权限（非空时才检查）
+            if (tenantId != null && meeting.getTenantId() != null && !meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限发布此会议");
+            }
             
             // 更新会议状态为已发布
             meeting.setStatus(1); // 已发布
@@ -295,10 +295,10 @@ public class MeetingServiceImpl implements MeetingService {
                 return Result.error("会议不存在");
             }
             
-//            // 检查租户权限
-//            if (!meeting.getTenantId().equals(tenantId)) {
-//                return Result.error("无权限操作此会议");
-//            }
+            // 检查租户权限（非空时才检查）
+            if (tenantId != null && meeting.getTenantId() != null && !meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限操作此会议");
+            }
             
             // 更新置顶状态
             meeting.setIsTop(isTop ? 1 : 0);
@@ -320,55 +320,92 @@ public class MeetingServiceImpl implements MeetingService {
      * 实体转VO
      */
     private MeetingVO convertToVO(Meeting meeting) {
-        MeetingVO vo = new MeetingVO();
-        BeanUtils.copyProperties(meeting, vo);
-        
-        // 设置类型文本
-        switch (meeting.getType()) {
-            case 1:
-                vo.setType(1);
-                vo.setTypeText("线上会议");
-                break;
-            case 2:
-                vo.setType(2);
-                vo.setTypeText("线下会议");
-                break;
-            case 3:
-                vo.setType(3);
-                vo.setTypeText("混合会议");
-                break;
-        }
+        try {
+            MeetingVO vo = new MeetingVO();
+            
+            // 手动复制基本属性，避免日期时间类型转换问题
+            vo.setId(meeting.getId());
+            vo.setTitle(meeting.getTitle() != null ? meeting.getTitle() : "");
+            vo.setDescription(meeting.getDescription());
+            vo.setType(meeting.getType() != null ? meeting.getType() : 0);
+            vo.setStatus(meeting.getStatus() != null ? meeting.getStatus() : 0);
+            vo.setLocation(meeting.getLocation());
+            vo.setMaxParticipants(meeting.getMaxParticipants());
+            vo.setCurrentParticipants(meeting.getCurrentParticipants());
+            vo.setFee(meeting.getFee() != null ? meeting.getFee().doubleValue() : null);
+            vo.setRequiresApproval(meeting.getRequiresApproval() != null && meeting.getRequiresApproval() == 1);
+            vo.setCoverImage(meeting.getCoverImage());
+            vo.setRemarks(meeting.getRemark());
+            vo.setCreateBy(meeting.getCreateBy());
+            vo.setCreateTime(meeting.getCreateTime());
+            vo.setUpdateTime(meeting.getUpdateTime());
+            vo.setTenantId(meeting.getTenantId());
+            vo.setIsTop(meeting.getIsTop() != null ? meeting.getIsTop() : 0);
+            vo.setTags(meeting.getTags());
+            vo.setRequirements(meeting.getRequirements());
+            
+            // 设置日期时间字段 - 直接赋值，因为现在都是LocalDateTime类型
+            vo.setStartTime(meeting.getStartTime());
+            vo.setEndTime(meeting.getEndTime());
+            vo.setRegistrationDeadline(meeting.getRegistrationDeadline());
+            
+            // 设置类型文本
+            if (meeting.getType() != null) {
+                switch (meeting.getType()) {
+                    case 1:
+                        vo.setTypeText("线上会议");
+                        break;
+                    case 2:
+                        vo.setTypeText("线下会议");
+                        break;
+                    case 3:
+                        vo.setTypeText("混合会议");
+                        break;
+                    default:
+                        vo.setTypeText("未知类型");
+                }
+            } else {
+                vo.setTypeText("未知类型");
+            }
 
-        // 设置状态文本
-        switch (meeting.getStatus()) {
-            case 0:
-                vo.setStatus(0);
-                vo.setStatusText("草稿");
-                break;
-            case 1:
-                vo.setStatus(1);
-                vo.setStatusText("已发布");
-                break;
-            case 2:
-                vo.setStatus(2);
-                vo.setStatusText("已取消");
-                break;
-            case 3:
-                vo.setStatus(3);
-                vo.setStatusText("已结束");
-                break;
-            case 4:
-                vo.setStatus(4);
-                vo.setStatusText("进行中");
-                break;
+            // 设置状态文本
+            if (meeting.getStatus() != null) {
+                switch (meeting.getStatus()) {
+                    case 0:
+                        vo.setStatusText("草稿");
+                        break;
+                    case 1:
+                        vo.setStatusText("已发布");
+                        break;
+                    case 2:
+                        vo.setStatusText("已取消");
+                        break;
+                    case 3:
+                        vo.setStatusText("已结束");
+                        break;
+                    case 4:
+                        vo.setStatusText("进行中");
+                        break;
+                    case 6:
+                        vo.setStatusText("已取消");
+                        break;
+                    default:
+                        vo.setStatusText("未知状态");
+                }
+            } else {
+                vo.setStatusText("未知状态");
+            }
+            
+            // 设置其他计算字段
+            vo.setCanRegister(meeting.getStatus() != null && meeting.getStatus() == 2); // 报名中状态可以报名
+            vo.setHasRegistered(false); // 需要根据用户查询
+            
+            return vo;
+        } catch (Exception e) {
+            // 记录异常，便于排查
+            log.error("会议实体转VO异常: {}, 会议ID: {}", e.getMessage(), meeting != null ? meeting.getId() : "null", e);
+            throw e;
         }
-        
-        // 设置其他计算字段
-        vo.setCurrentParticipants(meeting.getCurrentParticipants());
-        vo.setCanRegister(meeting.getStatus() == 2); // 报名中状态可以报名
-        vo.setHasRegistered(false); // 需要根据用户查询
-        
-        return vo;
     }
 }
 

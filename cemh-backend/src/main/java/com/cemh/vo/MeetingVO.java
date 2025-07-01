@@ -56,14 +56,14 @@ public class MeetingVO {
     /**
      * 开始时间
      */
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
-    private OffsetDateTime startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime startTime;
     
     /**
      * 结束时间
      */
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
-    private OffsetDateTime endTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
     
     /**
      * 会议地点
@@ -182,10 +182,10 @@ public class MeetingVO {
     public void setStatus(Integer status) { this.status = status; }
     public String getStatusText() { return statusText; }
     public void setStatusText(String statusText) { this.statusText = statusText; }
-    public OffsetDateTime getStartTime() { return startTime; }
-    public void setStartTime(OffsetDateTime startTime) { this.startTime = startTime; }
-    public OffsetDateTime getEndTime() { return endTime; }
-    public void setEndTime(OffsetDateTime endTime) { this.endTime = endTime; }
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
     public Integer getMaxParticipants() { return maxParticipants; }
