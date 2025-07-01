@@ -14,12 +14,16 @@ spring:
   # 数据源配置
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
+    #金仓
     driver-class-name: com.kingbase8.Driver
+    #SQL
+#   driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://localhost:3306/cemh_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
     url: jdbc:kingbase8://localhost:54321/cemh_system?currentSchema=cemh_system
     username: system
     password: 123456
     druid:
-      # 设置数据库类型为postgresql
+      # 设置数据库类型为postgresql（金仓）
       db-type: postgresql
       # 初始连接数
       initial-size: 5
@@ -66,6 +70,15 @@ spring:
         login-username: admin
         # 登录密码
         login-password: 123456
+
+aliyun:
+  oss:
+    endpoint: https://oss-cn-beijing.aliyuncs.com  # 替换为你的Endpoint
+    access-key-id: LTAI5t7PEtgXbP9STsLkNp58
+    region: cn-beijing# 替换为真实ID
+    access-key-secret: HElxPnuKHYq6xi9jyUGDwzvYtoi7Xz
+    bucket-name: neu-java
+
 
   # Redis配置
   redis:
