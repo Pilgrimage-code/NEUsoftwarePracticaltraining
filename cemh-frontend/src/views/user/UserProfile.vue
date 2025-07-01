@@ -459,9 +459,19 @@ export default {
     }
 
     // 头像上传成功
-    const handleAvatarSuccess = (response, file) => {
-      userInfo.avatar = URL.createObjectURL(file.raw)
-      ElMessage.success('头像上传成功')
+    const handleAvatarSuccess = async (response, file) => {
+      if (response.code === 200) {
+        userInfo.avatar = response.data.url
+        // 调用后端保存头像接口（假设有updateProfile API）
+        try {
+          await updateProfile({ avatar: userInfo.avatar })
+          ElMessage.success('头像上传成功')
+        } catch (e) {
+          ElMessage.error('头像保存失败')
+        }
+      } else {
+        ElMessage.error(response.message || '头像上传失败')
+      }
     }
 
     // 头像上传前验证

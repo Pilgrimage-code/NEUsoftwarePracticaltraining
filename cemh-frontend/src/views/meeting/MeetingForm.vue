@@ -308,8 +308,12 @@ export default {
         const parseDate = (dateString) => {
           if (!dateString) return '';
           console.log('原始时间字符串:', dateString);
+          // 修正日期部分，仅当日为一位数时补零
+          let correctedDateString = dateString.replace(/(\d{4})-(\d{1,2})-(\d{1})(?=T|$)/, (_, year, month, day) => {
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          });
           // 正则匹配时区部分，补全时区格式为 ±HH:MM
-          let standardDateString = dateString.replace(/([+-])(\d{2})(\d{2})?$/, (_, sign, hours, minutes = '00') => {
+          let standardDateString = correctedDateString.replace(/([+-])(\d{2})(\d{2})?$/, (_, sign, hours, minutes = '00') => {
             return `${sign}${hours}:${minutes}`;
           });
           console.log('修正后的时间字符串:', standardDateString);

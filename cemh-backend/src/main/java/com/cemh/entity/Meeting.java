@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -61,21 +60,21 @@ public class Meeting extends BaseEntity {
 
     @Schema(description = "会议开始时间")
     @TableField("start_time")
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @NotNull(message = "会议开始时间不能为空")
-    private OffsetDateTime startTime;
+    private LocalDateTime startTime;
 
     @Schema(description = "会议结束时间")
     @TableField("end_time")
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @NotNull(message = "会议结束时间不能为空")
-    private OffsetDateTime endTime;
+    private LocalDateTime endTime;
 
 
     @Schema(description = "报名截至时间")
     @TableField("registration_deadline")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
-    private OffsetDateTime registrationDeadline;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime registrationDeadline;
 
     @Schema(description = "最大参会人数")
     @TableField("max_participants")
@@ -129,6 +128,49 @@ public class Meeting extends BaseEntity {
     @TableField("requirements")
     private String requirements;
 
-
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
+    public Integer getType() { return type; }
+    public void setType(Integer type) { this.type = type; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public LocalDateTime getRegistrationDeadline() { return registrationDeadline; }
+    public void setRegistrationDeadline(LocalDateTime registrationDeadline) { this.registrationDeadline = registrationDeadline; }
+    public Integer getMaxParticipants() { return maxParticipants; }
+    public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
+    public Integer getCurrentParticipants() { return currentParticipants; }
+    public void setCurrentParticipants(Integer currentParticipants) { this.currentParticipants = currentParticipants; }
+    public BigDecimal getFee() { return fee; }
+    public void setFee(BigDecimal fee) { this.fee = fee; }
+    public Integer getStatus() { return status; }
+    public void setStatus(Integer status) { this.status = status; }
+    public Integer getRequiresApproval() { return requiresApproval; }
+    public void setRequiresApproval(Integer requiresApproval) { this.requiresApproval = requiresApproval; }
+    public String getCoverImage() { return coverImage; }
+    public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
+    public String getOrganizer() { return organizer; }
+    public void setOrganizer(String organizer) { this.organizer = organizer; }
+    public String getMeetingLink() { return meetingLink; }
+    public void setMeetingLink(String meetingLink) { this.meetingLink = meetingLink; }
+    public String getMeetingPassword() { return meetingPassword; }
+    public void setMeetingPassword(String meetingPassword) { this.meetingPassword = meetingPassword; }
+    public Integer getIsTop() { return isTop; }
+    public void setIsTop(Integer isTop) { this.isTop = isTop; }
+    public String getTags() { return tags; }
+    public void setTags(String tags) { this.tags = tags; }
+    public Long getTenantId() { return tenantId; }
+    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
+    public String getRequirements() { return requirements; }
+    public void setRequirements(String requirements) { this.requirements = requirements; }
 }
 

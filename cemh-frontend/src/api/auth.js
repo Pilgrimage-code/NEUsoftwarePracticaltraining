@@ -46,3 +46,45 @@ export function validateToken(token) {
   })
 }
 
+// 获取图片验证码
+export function getCaptcha() {
+  return request({
+    url: '/api/auth/captcha',
+    method: 'get'
+  })
+}
+
+// 用户注册
+export function registerUser(data) {
+  return request({
+    url: '/api/users/register',
+    method: 'post',
+    data
+  })
+}
+
+// 企业注册
+export function registerTenant(data) {
+  return request({
+    url: '/api/tenants/register',
+    method: 'post',
+    data
+  })
+}
+
+// 获取企业列表
+export function getTenants() {
+  return request({
+    url: '/api/tenants/all',
+    method: 'get'
+  })
+}
+
+// 获取部门列表（根据企业ID）
+export function getDeptsByTenant(tenantId) {
+  return request({
+    url: `/api/departments/by-tenant/${tenantId}`,
+    method: 'get'
+  })
+}
+

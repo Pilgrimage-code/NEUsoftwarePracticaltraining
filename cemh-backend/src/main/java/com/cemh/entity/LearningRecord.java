@@ -157,6 +157,8 @@ public class LearningRecord extends BaseEntity {
         this.tenantId = tenantId;
     }
 
+    public void setCompletionTime(LocalDateTime completionTime) { this.completionTime = completionTime; }
+
     @Override
     public String toString() {
         return "LearningRecord{" +

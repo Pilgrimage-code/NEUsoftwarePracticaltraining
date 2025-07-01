@@ -90,5 +90,10 @@ public interface SysUserService {
      * 获取部门下的用户
      */
     Result<List<SysUser>> getUsersByDept(Long deptId, Long tenantId);
+
+    /**
+     * 根据用户名查询用户
+     */
+    Result<SysUser> getByUsername(String username, Long tenantId);
 }
 

@@ -34,8 +34,12 @@ public class SysUserServiceImpl implements SysUserService {
         try {
             Page<SysUser> page = new Page<>(pageNum, pageSize);
             QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("tenant_id", tenantId)
-                       .eq("deleted", 0);
+            
+            // 如果tenantId不为空，才添加租户条件
+            if (tenantId != null) {
+                queryWrapper.eq("tenant_id", tenantId);
+            }
+            queryWrapper.eq("deleted", 0);
             
             if (username != null && !username.trim().isEmpty()) {
                 queryWrapper.like("username", username);
@@ -380,6 +384,14 @@ public class SysUserServiceImpl implements SysUserService {
         } catch (Exception e) {
             return Result.error("获取部门用户失败：" + e.getMessage());
         }
+    }
+    
+    @Override
+    public Result<SysUser> getByUsername(String username, Long tenantId) {
+        SysUser user = sysUserMapper.selectOne(new QueryWrapper<SysUser>()
+                .eq("username", username)
+                .eq("tenant_id", tenantId));
+        return user != null ? Result.success(user) : Result.error("用户不存在");
     }
 }
 
