@@ -8,7 +8,11 @@ import com.cemh.common.Result;
 import com.cemh.dto.MeetingDTO;
 import com.cemh.dto.MeetingQueryDTO;
 import com.cemh.entity.Meeting;
+import com.cemh.entity.MeetingMaterial;
+import com.cemh.entity.MeetingRegistration;
 import com.cemh.mapper.MeetingMapper;
+import com.cemh.mapper.MeetingMaterialMapper;
+import com.cemh.mapper.MeetingRegistrationMapper;
 import com.cemh.service.MeetingService;
 import com.cemh.vo.MeetingVO;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +36,10 @@ public class MeetingServiceImpl implements MeetingService {
     
     @Autowired
     private MeetingMapper meetingMapper;
+    @Autowired
+    private MeetingMaterialMapper meetingMaterialMapper;
+    @Autowired
+    private MeetingRegistrationMapper meetingRegistrationMapper;
     
     @Override
     public Result<Void> createMeeting(MeetingDTO meetingDTO) {
@@ -49,11 +57,22 @@ public class MeetingServiceImpl implements MeetingService {
             meeting.setStatus(0); // 草稿状态
             meeting.setCurrentParticipants(0);
             meeting.setIsTop(0);
+            meeting.setCreateTime(LocalDateTime.now());
+            meeting.setUpdateTime(LocalDateTime.now());
 
             // 保存到数据库
-            int result = meetingMapper.insert(meeting);
+            int result1 = meetingMapper.insert(meeting);
 
-            if (result > 0) {
+            List<MeetingMaterial> materials = meetingDTO.getMaterials();
+            if (materials != null && !materials.isEmpty()) {
+                for (MeetingMaterial material : materials) {
+                    material.setMeetingId(meeting.getId());
+                    // 保存材料到数据库
+                    meetingMaterialMapper.insert(material);
+                }
+            }
+
+            if (result1 > 0) {
                 return Result.success();
             } else {
                 return Result.error("创建会议失败");
@@ -83,7 +102,19 @@ public class MeetingServiceImpl implements MeetingService {
             BeanUtils.copyProperties(meetingDTO, meeting);
             
             // 更新到数据库
+
+            meetingMaterialMapper.deleteByMeetingId(meeting.getId());
+
+            List<MeetingMaterial> materials = meetingDTO.getMaterials();
+            if (materials!= null &&!materials.isEmpty()) {
+                for (MeetingMaterial material : materials) {
+                    material.setMeetingId(meeting.getId());
+                    // 保存材料到数据库
+                    meetingMaterialMapper.insert(material);
+                }
+            }
             int result = meetingMapper.updateById(meeting);
+
             if (result > 0) {
                 return Result.success();
             } else {
@@ -109,8 +140,9 @@ public class MeetingServiceImpl implements MeetingService {
             }
             
             // 删除会议
-            int result = meetingMapper.deleteById(id);
-            if (result > 0) {
+            int result1 = meetingMapper.deleteById(id);
+            int result2 = meetingMaterialMapper.deleteByMeetingId(id);
+            if (result1 > 0 && result2 > 0) {
                 return Result.success();
             } else {
                 return Result.error("删除会议失败");
@@ -124,15 +156,15 @@ public class MeetingServiceImpl implements MeetingService {
     public Result<MeetingVO> getMeetingDetail(Long id, Long tenantId) {
         try {
             // 查询会议
-            Meeting meeting = meetingMapper.selectById(id);
+            Meeting meeting = meetingMapper.getById(id);
             if (meeting == null) {
                 return Result.error("会议不存在");
             }
             
-            // 检查租户权限（非空时才检查）
-            if (tenantId != null && meeting.getTenantId() != null && !meeting.getTenantId().equals(tenantId)) {
-                return Result.error("无权限查看此会议");
-            }
+//            // 检查租户权限（非空时才检查）
+//            if (tenantId != null && meeting.getTenantId() != null && !meeting.getTenantId().equals(tenantId)) {
+//                return Result.error("无权限查看此会议");
+//            }
             
             // 实体转VO
             MeetingVO meetingVO = convertToVO(meeting);
@@ -315,7 +347,53 @@ public class MeetingServiceImpl implements MeetingService {
             return Result.error("操作异常：" + e.getMessage());
         }
     }
-    
+
+    /**
+     * 报名会议
+     */
+    @Override
+    public Result<Void> registerMeeting(Long meetingId, MeetingRegistration registration, Long tenantId, Long userId) {
+        try{
+            Meeting meeting = meetingMapper.selectById(meetingId);
+            if (meeting == null) {
+                return Result.error("会议不存在");
+            }
+            // 检查租户权限（非空时才检查）
+            if (tenantId!= null && meeting.getTenantId()!= null &&!meeting.getTenantId().equals(tenantId)) {
+                return Result.error("无权限操作此会议");
+            }
+            // 检查报名人数是否已满
+            if (meeting.getCurrentParticipants() >= meeting.getMaxParticipants()) {
+                return Result.error("报名人数已满");
+            }
+            // 检查是否已报名
+            LambdaQueryWrapper<MeetingRegistration> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(MeetingRegistration::getMeetingId, meetingId);
+            queryWrapper.eq(MeetingRegistration::getUserId, userId);
+            MeetingRegistration existingRegistration = meetingRegistrationMapper.selectOne(queryWrapper);
+            if (existingRegistration != null) {
+                return Result.error("您已报名该会议");
+            }
+            // 保存报名信息
+            registration.setMeetingId(meetingId);
+            registration.setUserId(userId);
+            registration.setStatus(0); // 待审核
+            registration.setCreateTime(LocalDateTime.now());
+            registration.setUpdateTime(LocalDateTime.now());
+            int result = meetingRegistrationMapper.insert(registration);
+            if (result > 0) {
+                // 更新会议当前人数
+                meeting.setCurrentParticipants(meeting.getCurrentParticipants() + 1);
+                meetingMapper.updateById(meeting);
+                return Result.success();
+            } else {
+                return Result.error("报名失败");
+            }
+        } catch (Exception e) {
+            return Result.error("报名异常：" + e.getMessage());
+        }
+    }
+
     /**
      * 实体转VO
      */
@@ -348,6 +426,7 @@ public class MeetingServiceImpl implements MeetingService {
             vo.setStartTime(meeting.getStartTime());
             vo.setEndTime(meeting.getEndTime());
             vo.setRegistrationDeadline(meeting.getRegistrationDeadline());
+            vo.setMaterials(meeting.getMaterials());
             
             // 设置类型文本
             if (meeting.getType() != null) {

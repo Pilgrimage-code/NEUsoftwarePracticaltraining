@@ -4,6 +4,7 @@ import com.cemh.common.PageResult;
 import com.cemh.common.Result;
 import com.cemh.dto.MeetingDTO;
 import com.cemh.dto.MeetingQueryDTO;
+import com.cemh.entity.MeetingRegistration;
 import com.cemh.service.MeetingService;
 import com.cemh.vo.MeetingVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -90,6 +91,18 @@ public class MeetingController {
                                    @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
                                    @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         return meetingService.topMeeting(id, isTop, tenantId, userId);
+    }
+
+    @Operation(summary = "报名会议", description = "用户报名指定会议")
+    @PostMapping("/register/{meetingId}")
+    public Result<Void> registerMeeting(@Parameter(description = "会议ID") @PathVariable Long meetingId,
+                                        @RequestBody MeetingRegistration registration,
+                                        @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                        @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        // 实现报名逻辑
+
+        return meetingService.registerMeeting(meetingId, registration, tenantId, userId);
+
     }
 }
 

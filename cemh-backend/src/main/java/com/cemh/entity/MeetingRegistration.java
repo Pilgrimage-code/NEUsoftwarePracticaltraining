@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -20,6 +23,9 @@ import java.time.LocalDateTime;
  */
 @Schema(description = "会议报名信息")
 @TableName("meeting_registration")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class MeetingRegistration extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
@@ -50,47 +56,35 @@ public class MeetingRegistration extends BaseEntity {
     @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "邮箱格式不正确")
     private String participantEmail;
 
-    @Schema(description = "报名人身份证号")
-    @TableField("participant_id_card")
-    private String participantIdCard;
+    @Schema(description = "报名人性别")
+    @TableField("participant_gender")
+    private Integer participantGender;
 
     @Schema(description = "报名人单位")
     @TableField("participant_company")
     private String participantCompany;
 
-    @Schema(description = "报名人职位")
-    @TableField("participant_position")
-    private String participantPosition;
-
     @Schema(description = "报名状态（0：待审核，1：已通过，2：已拒绝，3：已取消）")
     @TableField("status")
     private Integer status;
-
-    @Schema(description = "审核意见")
-    @TableField("approval_comment")
-    private String approvalComment;
-
-    @Schema(description = "审核人ID")
-    @TableField("approval_by")
-    private Long approvalBy;
-
-    @Schema(description = "审核时间")
-    @TableField("approval_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime approvalTime;
 
     @Schema(description = "签到状态（0：未签到，1：已签到）")
     @TableField("check_in_status")
     private Integer checkInStatus;
 
-    @Schema(description = "签到时间")
-    @TableField("check_in_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime checkInTime;
+    @Schema(description = "到达方式")
+    @TableField("arrival_method")
+    private String arrivalMethod;
 
-    @Schema(description = "特殊需求")
-    @TableField("special_requirements")
-    private String specialRequirements;
+    @Schema(description = "到达车次")
+    @TableField("arrival_train")
+    private String arrivalTrain;
+
+    @Schema(description = "到达时间")
+    @TableField("arrival_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime arrivalTime;
+
 
     // 非数据库字段
     @Schema(description = "会议标题")
@@ -100,170 +94,5 @@ public class MeetingRegistration extends BaseEntity {
     @Schema(description = "审核人姓名")
     @TableField(exist = false)
     private String approvalByName;
-
-    public MeetingRegistration() {
-        this.status = 0; // 默认待审核状态
-        this.checkInStatus = 0; // 默认未签到
-    }
-
-    // Getter and Setter methods
-    public Long getMeetingId() {
-        return meetingId;
-    }
-
-    public void setMeetingId(Long meetingId) {
-        this.meetingId = meetingId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getParticipantName() {
-        return participantName;
-    }
-
-    public void setParticipantName(String participantName) {
-        this.participantName = participantName;
-    }
-
-    public String getParticipantPhone() {
-        return participantPhone;
-    }
-
-    public void setParticipantPhone(String participantPhone) {
-        this.participantPhone = participantPhone;
-    }
-
-    public String getParticipantEmail() {
-        return participantEmail;
-    }
-
-    public void setParticipantEmail(String participantEmail) {
-        this.participantEmail = participantEmail;
-    }
-
-    public String getParticipantIdCard() {
-        return participantIdCard;
-    }
-
-    public void setParticipantIdCard(String participantIdCard) {
-        this.participantIdCard = participantIdCard;
-    }
-
-    public String getParticipantCompany() {
-        return participantCompany;
-    }
-
-    public void setParticipantCompany(String participantCompany) {
-        this.participantCompany = participantCompany;
-    }
-
-    public String getParticipantPosition() {
-        return participantPosition;
-    }
-
-    public void setParticipantPosition(String participantPosition) {
-        this.participantPosition = participantPosition;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public String getApprovalComment() {
-        return approvalComment;
-    }
-
-    public void setApprovalComment(String approvalComment) {
-        this.approvalComment = approvalComment;
-    }
-
-    public Long getApprovalBy() {
-        return approvalBy;
-    }
-
-    public void setApprovalBy(Long approvalBy) {
-        this.approvalBy = approvalBy;
-    }
-
-    public LocalDateTime getApprovalTime() {
-        return approvalTime;
-    }
-
-    public void setApprovalTime(LocalDateTime approvalTime) {
-        this.approvalTime = approvalTime;
-    }
-
-    public Integer getCheckInStatus() {
-        return checkInStatus;
-    }
-
-    public void setCheckInStatus(Integer checkInStatus) {
-        this.checkInStatus = checkInStatus;
-    }
-
-    public LocalDateTime getCheckInTime() {
-        return checkInTime;
-    }
-
-    public void setCheckInTime(LocalDateTime checkInTime) {
-        this.checkInTime = checkInTime;
-    }
-
-    public String getSpecialRequirements() {
-        return specialRequirements;
-    }
-
-    public void setSpecialRequirements(String specialRequirements) {
-        this.specialRequirements = specialRequirements;
-    }
-
-    public String getMeetingTitle() {
-        return meetingTitle;
-    }
-
-    public void setMeetingTitle(String meetingTitle) {
-        this.meetingTitle = meetingTitle;
-    }
-
-    public String getApprovalByName() {
-        return approvalByName;
-    }
-
-    public void setApprovalByName(String approvalByName) {
-        this.approvalByName = approvalByName;
-    }
-
-    @Override
-    public String toString() {
-        return "MeetingRegistration{" +
-                "meetingId=" + meetingId +
-                ", userId=" + userId +
-                ", participantName='" + participantName + '\'' +
-                ", participantPhone='" + participantPhone + '\'' +
-                ", participantEmail='" + participantEmail + '\'' +
-                ", participantIdCard='" + participantIdCard + '\'' +
-                ", participantCompany='" + participantCompany + '\'' +
-                ", participantPosition='" + participantPosition + '\'' +
-                ", status=" + status +
-                ", approvalComment='" + approvalComment + '\'' +
-                ", approvalBy=" + approvalBy +
-                ", approvalTime=" + approvalTime +
-                ", checkInStatus=" + checkInStatus +
-                ", checkInTime=" + checkInTime +
-                ", specialRequirements='" + specialRequirements + '\'' +
-                ", meetingTitle='" + meetingTitle + '\'' +
-                ", approvalByName='" + approvalByName + '\'' +
-                "} " + super.toString();
-    }
 }
 
