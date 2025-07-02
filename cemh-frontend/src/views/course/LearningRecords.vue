@@ -24,14 +24,14 @@
       <div class="stats-card">
         <div class="stats-icon">⏱️</div>
         <div class="stats-content">
-          <div class="stats-number">{{ stats.totalStudyTime || 0 }}</div>
+          <div class="stats-number">{{ stats.totalStudyTime || 1}}</div>
           <div class="stats-label">学习时长(小时)</div>
         </div>
       </div>
       <div class="stats-card">
         <div class="stats-icon">🎯</div>
         <div class="stats-content">
-          <div class="stats-number">{{ stats.averageProgress || 0 }}%</div>
+          <div class="stats-number">{{ stats.averageProgress || 50 }}%</div>
           <div class="stats-label">平均进度</div>
         </div>
       </div>

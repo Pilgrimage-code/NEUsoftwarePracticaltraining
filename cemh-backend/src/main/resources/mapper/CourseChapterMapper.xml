@@ -49,4 +49,11 @@
         AND deleted = 0
     </select>
 
+    <!-- 获取当前最大的章节ID -->
+    <select id="selectMaxId" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(id), 0)
+        FROM course_chapter
+        WHERE deleted = 0
+    </select>
+
 </mapper> 

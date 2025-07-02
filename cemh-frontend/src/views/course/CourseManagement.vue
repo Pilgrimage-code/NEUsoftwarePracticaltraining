@@ -48,6 +48,9 @@
       <el-button type="success" @click="handleExport">
         <el-icon><Download /></el-icon>导出
       </el-button>
+      <el-button type="warning" @click="navigateToCourseReview">
+        <el-icon><View /></el-icon>课程审核管理
+      </el-button>
     </div>
 
     <!-- 表格区域 -->
@@ -81,6 +84,13 @@
         <template #default="scope">
           <el-tag :type="scope.row.status === 1 ? 'success' : 'info'">
             {{ scope.row.status === 1 ? '启用' : '禁用' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="remark" label="审核状态" width="100" align="center">
+        <template #default="scope">
+          <el-tag :type="getReviewStatusType(scope.row.remark)">
+            {{ getReviewStatusText(scope.row.remark) }}
           </el-tag>
         </template>
       </el-table-column>
@@ -225,8 +235,21 @@
               button-text="上传视频"
               :tip="'支持 mp4 格式，大小不超过 50MB'"
               :max-size="50"
+              :auto-upload="true"
+              :initial-file-url="chapterForm.videoUrl"
               @upload-success="handleVideoUploadSuccess"
+              @upload-progress="handleVideoUploadProgress"
+              @file-change="handleVideoFileChange"
             />
+            <div v-if="videoUploadStatus.uploading" class="video-upload-progress">
+              <el-progress 
+                :percentage="videoUploadStatus.progress" 
+                :status="videoUploadStatus.status"
+                :stroke-width="10"
+                :show-text="true"
+              />
+              <div class="upload-status-text">{{ videoUploadStatusText }}</div>
+            </div>
           </el-form-item>
           
           <el-form-item label="视频时长" prop="duration">
@@ -246,7 +269,7 @@
 <script>
 import { ref, reactive, onMounted, computed, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus, Refresh, Download, Reading } from '@element-plus/icons-vue'
+import { Search, Plus, Refresh, Download, Reading, View } from '@element-plus/icons-vue'
 import { courseApi } from '@/api/course'
 import CourseForm from './CourseForm.vue'
 import FileUpload from '@/components/FileUpload.vue'
@@ -261,7 +284,8 @@ export default {
     Plus,
     Refresh,
     Download,
-    Reading
+    Reading,
+    View
   },
   setup() {
     // 查询参数
@@ -324,6 +348,24 @@ export default {
         { required: true, message: '请上传章节视频', trigger: 'change' }
       ]
     }
+
+    // 视频上传状态
+    const videoUploadStatus = reactive({
+      uploading: false,
+      progress: 0,
+      status: '', // success, exception, ''
+    })
+    
+    // 计算视频上传状态文本
+    const videoUploadStatusText = computed(() => {
+      if (videoUploadStatus.status === 'success') {
+        return '上传成功'
+      } else if (videoUploadStatus.status === 'exception') {
+        return '上传失败'
+      } else {
+        return `上传中 ${videoUploadStatus.progress}%`
+      }
+    })
 
     // 获取课程列表
     const getList = async () => {
@@ -536,22 +578,41 @@ export default {
     const handleVideoUploadSuccess = (data) => {
       console.log('视频上传成功:', data);
       if (data && data.url) {
-        // 确保URL符合格式：http://localhost:8080/uploads/20250627_xxxx.mp4
+        // 获取原始URL
         let videoUrl = data.url;
         
-        // 检查URL格式是否正确，如果不正确，尝试修正
-        if (!videoUrl.match(/^https?:\/\/.*\/uploads\/\d{8}_.*\.\w+$/)) {
-          const baseUrl = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080';
-          // 尝试提取文件名部分
-          const urlParts = videoUrl.split('/');
-          const filename = urlParts[urlParts.length - 1];
-          videoUrl = `${baseUrl}/uploads/${filename}`;
-          console.log('修正后的视频URL:', videoUrl);
-        }
-        
-        console.log('最终设置的视频URL:', videoUrl);
+        // 将视频URL更新到表单
         chapterForm.videoUrl = videoUrl;
+        
+        console.log('最终设置的视频URL:', chapterForm.videoUrl);
+        
+        // 更新上传状态
+        videoUploadStatus.uploading = false;
+        videoUploadStatus.progress = 100;
+        videoUploadStatus.status = 'success';
+        
+        // 手动触发表单验证更新
+        if (chapterFormRef.value) {
+          chapterFormRef.value.validateField('videoUrl');
+        }
       }
+    };
+    
+    // 处理视频文件变更
+    const handleVideoFileChange = (file) => {
+      console.log('视频文件已选择:', file.name);
+      // 重置上传状态
+      videoUploadStatus.uploading = true;
+      videoUploadStatus.progress = 0;
+      videoUploadStatus.status = '';
+    };
+    
+    // 处理视频上传进度
+    const handleVideoUploadProgress = (percentage) => {
+      console.log('视频上传进度:', percentage);
+      videoUploadStatus.progress = percentage;
+      // 只有在上传中时才显示进度条
+      videoUploadStatus.uploading = percentage < 100;
     };
 
     // 提交章节表单
@@ -563,37 +624,27 @@ export default {
           return false;
         }
         
+        // 检查是否正在上传视频
+        if (videoUploadStatus.uploading && videoUploadStatus.progress < 100) {
+          ElMessage.warning('请等待视频上传完成');
+          return false;
+        }
+        
+        // 在提交前处理视频URL，确保使用相对路径格式
+        if (chapterForm.videoUrl && chapterForm.videoUrl.startsWith('http')) {
+          // 从URL中提取文件名部分
+          const urlParts = chapterForm.videoUrl.split('/');
+          const fileName = urlParts[urlParts.length - 1];
+          
+          if (fileName) {
+            // 使用/uploads/文件名格式
+            chapterForm.videoUrl = `/uploads/${fileName}`;
+            console.log('提交前格式化URL为相对路径:', chapterForm.videoUrl);
+          }
+        }
+        
         chapterFormLoading.value = true;
         try {
-          // 视频文件上传处理
-          const videoUploadRef = videoUpload.value;
-          if (videoUploadRef) {
-            // 检查是否有文件等待上传
-            const hasFileToUpload = videoUploadRef.currentFile && videoUploadRef.currentFile.raw && !videoUploadRef.uploading;
-            console.log('视频上传状态检查:', { hasFile: !!videoUploadRef.currentFile, hasRawFile: videoUploadRef.currentFile?.raw, isUploading: videoUploadRef.uploading });
-            
-            if (hasFileToUpload) {
-              // 触发上传
-              console.log('开始上传视频文件...');
-              await videoUploadRef.upload();
-              console.log('视频上传完成, URL:', videoUploadRef.fileUrl);
-              
-              // 确保URL正确设置到表单
-              if (videoUploadRef.fileUrl) {
-                chapterForm.videoUrl = videoUploadRef.fileUrl;
-              }
-            } else {
-              console.log('没有新视频需要上传，保持原有URL:', chapterForm.videoUrl);
-            }
-          }
-
-          // 确保videoUrl不为空
-          if (!chapterForm.videoUrl) {
-            ElMessage.warning('请上传视频文件');
-            chapterFormLoading.value = false;
-            return;
-          }
-
           console.log('准备提交章节表单:', JSON.stringify(chapterForm));
           
           let res;
@@ -655,6 +706,33 @@ export default {
       })
     }
 
+    // 导航到课程审核页面
+    const navigateToCourseReview = () => {
+      router.push({
+        name: 'CourseReview'
+      })
+    }
+
+    // 获取审核状态显示文本
+    const getReviewStatusText = (remark) => {
+      const statusMap = {
+        '0': '审核通过',
+        '1': '待审核',
+        '2': '审核不通过'
+      }
+      return statusMap[remark] || '未知状态'
+    }
+    
+    // 获取审核状态标签类型
+    const getReviewStatusType = (remark) => {
+      const typeMap = {
+        '0': 'success',
+        '1': 'warning',
+        '2': 'danger'
+      }
+      return typeMap[remark] || 'info'
+    }
+
     onMounted(() => {
       getList()
     })
@@ -702,7 +780,22 @@ export default {
       
       // 路由器
       router,
-      handleViewChapter
+      handleViewChapter,
+      navigateToCourseReview,
+      
+      // 审核状态相关
+      getReviewStatusType,
+      getReviewStatusText,
+      
+      // 视频上传状态
+      videoUploadStatus,
+      videoUploadStatusText,
+      
+      // 处理视频文件变更
+      handleVideoFileChange,
+      
+      // 处理视频上传进度
+      handleVideoUploadProgress
     }
   }
 }
@@ -777,6 +870,18 @@ export default {
   margin-bottom: 20px;
   display: flex;
   justify-content: flex-start;
+}
+
+.video-upload-progress {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 350px;
+}
+
+.upload-status-text {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #606266;
 }
 </style>
 

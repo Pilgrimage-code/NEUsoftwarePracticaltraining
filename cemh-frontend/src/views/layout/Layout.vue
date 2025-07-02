@@ -82,6 +82,26 @@
                 </transition>
               </router-link>
             </li>
+            <li class="nav-item">
+              <router-link to="/dashboard/course-review" class="nav-link" :class="{ 'active': isActiveRoute('/dashboard/course-review') }">
+                <div class="nav-icon">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 19.5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M11 12.5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M11 5.5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4 5.5C4 4.94772 4.44772 4.5 5 4.5C5.55228 4.5 6 4.94772 6 5.5C6 6.05228 5.55228 6.5 5 6.5C4.44772 6.5 4 6.05228 4 5.5Z" fill="currentColor"/>
+                    <path d="M3 5.5C3 4.39543 3.89543 3.5 5 3.5C6.10457 3.5 7 4.39543 7 5.5C7 6.60457 6.10457 7.5 5 7.5C3.89543 7.5 3 6.60457 3 5.5Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M4 12.5C4 11.9477 4.44772 11.5 5 11.5C5.55228 11.5 6 11.9477 6 12.5C6 13.0523 5.55228 13.5 5 13.5C4.44772 13.5 4 13.0523 4 12.5Z" fill="currentColor"/>
+                    <path d="M3 12.5C3 11.3954 3.89543 10.5 5 10.5C6.10457 10.5 7 11.3954 7 12.5C7 13.6046 6.10457 14.5 5 14.5C3.89543 14.5 3 13.6046 3 12.5Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M4 19.5C4 18.9477 4.44772 18.5 5 18.5C5.55228 18.5 6 18.9477 6 19.5C6 20.0523 5.55228 20.5 5 20.5C4.44772 20.5 4 20.0523 4 19.5Z" fill="currentColor"/>
+                    <path d="M3 19.5C3 18.3954 3.89543 17.5 5 17.5C6.10457 17.5 7 18.3954 7 19.5C7 20.6046 6.10457 21.5 5 21.5C3.89543 21.5 3 20.6046 3 19.5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <transition name="fade">
+                  <span v-show="!sidebarCollapsed" class="nav-text">课程审核</span>
+                </transition>
+              </router-link>
+            </li>
           </ul>
         </div>
       </nav>

@@ -19,6 +19,36 @@ export const courseApi = {
     return this.getCourses(params, tenantId)
   },
 
+  // 获取待审核课程列表
+  getPendingReviewCourses(params, tenantId) {
+    const headers = {}
+    if (tenantId) headers['X-Tenant-Id'] = tenantId
+
+    return request({
+      url: '/api/courses/pending-review',
+      method: 'get',
+      params,
+      headers
+    })
+  },
+
+  // 审核课程
+  reviewCourse(id, reviewData, tenantId, userId) {
+    const headers = {}
+    if (tenantId) headers['X-Tenant-Id'] = tenantId
+    if (userId) headers['X-User-Id'] = userId
+
+    return request({
+      url: `/api/courses/${id}/review`,
+      method: 'put',
+      params: {
+        status: reviewData.status,
+        reviewComment: reviewData.reviewComment
+      },
+      headers
+    })
+  },
+
   // 获取课程详情
   getCourseById(id, tenantId) {
     const headers = {}
@@ -164,8 +194,9 @@ export const courseApi = {
 
   // 创建章节
   createChapter(courseId, data) {
+    // 确保使用正确的URL路径
     return request({
-      url: `/api/courses/${courseId}/chapter`,
+      url: `/api/courses/chapter`,
       method: 'post',
       data
     })

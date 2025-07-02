@@ -100,29 +100,20 @@ public class UploadController {
             return Result.error("文件大小不能超过50MB");
         }
         try {
-            // 创建上传目录
-            File uploadDir = new File(uploadPath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-            // 生成文件名
-            String originalFilename = file.getOriginalFilename();
-            String extension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            }
-            String dateStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String filename = dateStr + "_" + java.util.UUID.randomUUID().toString() + extension;
-            // 保存文件
-            File destFile = new File(uploadDir, filename);
-            file.transferTo(destFile);
-            // 返回文件信息
+            logger.info("上传视频: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
+            String filePath = FileUtils.saveFile(file, "video");
+            String url = buildFullUrl(filePath);
+            
+            // 提取文件名
+            String filename = filePath.substring(filePath.lastIndexOf('/') + 1);
+            
             Map<String, Object> result = new HashMap<>();
             result.put("filename", filename);
-            result.put("originalName", originalFilename);
+            result.put("originalName", file.getOriginalFilename());
             result.put("size", file.getSize());
-            result.put("url", urlPrefix + "/" + filename);
-            logger.info("视频已上传: {}", urlPrefix + "/" + filename);
+            result.put("url", url);
+            
+            logger.info("视频已上传: {}", url);
             return Result.success(result);
         } catch (IOException e) {
             logger.error("上传视频失败", e);
@@ -188,18 +179,53 @@ public class UploadController {
     }
     
     private String buildFullUrl(String filePath) {
-        // filePath 形如 /uploads/images/2025/06/27/xxx.png
-        // 只保留 /images/2025/06/27/xxx.png 部分
+        // filePath 形如 /uploads/20250627_UUID.mp4 或 /uploads/images/2025/06/27/xxx.png
+        
         String path = filePath;
-        int idx = filePath.indexOf("/images");
-        if (idx == -1) idx = filePath.indexOf("/videos");
-        if (idx == -1) idx = filePath.indexOf("/documents");
-        if (idx == -1) idx = filePath.indexOf("/others");
-        if (idx != -1) {
-            path = filePath.substring(idx);
+        
+        // 检查是否为新格式的视频路径 (/uploads/20250627_xxx.mp4)
+        if (filePath.matches("/uploads/\\d{8}_[a-f0-9-]+\\.[a-zA-Z0-9]+")) {
+            path = filePath;
+        } else {
+            // 处理旧格式的路径
+            int idx = filePath.indexOf("/images");
+            if (idx == -1) idx = filePath.indexOf("/videos");
+            if (idx == -1) idx = filePath.indexOf("/documents");
+            if (idx == -1) idx = filePath.indexOf("/others");
+            if (idx != -1) {
+                path = filePath.substring(idx);
+            }
         }
-        // 拼接完整URL
-        return domain + ":" + serverPort + urlPrefix + path;
+        
+        // 检查urlPrefix是否已经包含了domain和port
+        if (urlPrefix.startsWith("http")) {
+            // 如果urlPrefix已经是完整URL，直接使用
+            // 确保URL前缀不重复出现
+            if (path.startsWith("/") && !urlPrefix.endsWith("/")) {
+                return urlPrefix + path;
+            } else if (!path.startsWith("/") && urlPrefix.endsWith("/")) {
+                return urlPrefix + path;
+            } else if (path.startsWith("/") && urlPrefix.endsWith("/")) {
+                return urlPrefix + path.substring(1);
+            } else {
+                return urlPrefix + "/" + path;
+            }
+        } else {
+            // 否则拼接完整URL
+            String baseUrl = domain + ":" + serverPort;
+            
+            // 检查urlPrefix是否以/开头
+            if (!urlPrefix.startsWith("/")) {
+                urlPrefix = "/" + urlPrefix;
+            }
+            
+            // 检查path是否以/开头
+            if (path.startsWith("/")) {
+                return baseUrl + urlPrefix + path;
+            } else {
+                return baseUrl + urlPrefix + "/" + path;
+            }
+        }
     }
     
     @Data

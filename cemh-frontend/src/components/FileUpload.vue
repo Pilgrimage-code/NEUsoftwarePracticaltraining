@@ -50,6 +50,10 @@
         <video controls :src="fileUrl" @error="handlePreviewError">
           您的浏览器不支持视频预览
         </video>
+        <div class="video-info">
+          <el-tag size="small" type="success">视频已上传</el-tag>
+          <span class="video-name">{{ fileName || '视频' }}</span>
+        </div>
       </div>
       <div v-else class="file-info">
         <el-link :href="fileUrl" target="_blank">{{ fileName || '查看文件' }}</el-link>
@@ -59,10 +63,11 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { uploadApi } from '@/api/upload'
+import axios from 'axios'
 
 export default {
   name: 'FileUpload',
@@ -193,22 +198,45 @@ export default {
       try {
         console.log('开始上传文件:', currentFile.value.name, '类型:', props.fileType)
         
-        let response
-        switch (props.fileType) {
-          case 'image':
-            response = await uploadApi.uploadImage(currentFile.value.raw)
-            break
-          case 'video':
-            response = await uploadApi.uploadVideo(currentFile.value.raw)
-            break
-          case 'document':
-            response = await uploadApi.uploadDocument(currentFile.value.raw)
-            break
-          default:
-            response = await uploadApi.uploadFile(currentFile.value.raw)
+        // 使用FormData构建上传数据
+        const formData = new FormData()
+        formData.append('file', currentFile.value.raw)
+        
+        // 定义上传配置
+        const config = {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            // 计算上传进度百分比
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            uploadProgress.value = percentCompleted
+            emit('upload-progress', percentCompleted)
+            console.log(`上传进度: ${percentCompleted}%`)
+          }
         }
         
-        console.log('上传响应:', response)
+        // 根据文件类型选择上传API
+        let response
+        let url = ''
+        switch (props.fileType) {
+          case 'image':
+            url = '/api/upload/image'
+            break
+          case 'video':
+            url = '/api/upload/video'
+            break
+          case 'document':
+            url = '/api/upload/document'
+            break
+          default:
+            url = '/api/upload/file'
+        }
+        
+        // 直接使用axios上传，以便使用进度事件
+        const baseURL = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080'
+        response = await axios.post(`${baseURL}${url}`, formData, config)
+        response = response.data // 获取响应数据
         
         if (response.code === 200) {
           uploadProgress.value = 100
@@ -218,16 +246,19 @@ export default {
           fileUrl.value = response.data.url
           fileName.value = response.data.name || currentFile.value.name
           
-          // 确保URL的正确格式(http://localhost:8080/uploads/20250627_xxxx.mp4)
-          console.log('原始上传URL:', fileUrl.value)
-          
-          // 如果URL不是期望的格式，则修正它
-          if (!fileUrl.value.match(/^https?:\/\/.*\/uploads\/\d{8}_.*\.\w+$/)) {
+          // 如果是视频文件，确保URL格式正确
+          if (props.fileType === 'video') {
             const baseUrl = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080'
-            const urlParts = fileUrl.value.split('/')
-            const filename = urlParts[urlParts.length - 1]
-            fileUrl.value = `${baseUrl}/uploads/${filename}`
-            console.log('修正后的URL:', fileUrl.value)
+            // 检查是否符合 /uploads/20250627_UUID.mp4 格式
+            const urlPattern = /\/uploads\/\d{8}_[a-f0-9-]+\.\w+$/
+            if (!urlPattern.test(fileUrl.value)) {
+              // 如果不符合要求格式，从URL中提取文件名部分并构建新格式
+              const urlParts = fileUrl.value.split('/')
+              const filename = urlParts[urlParts.length - 1]
+              console.log('文件名:', filename)
+              fileUrl.value = `${baseUrl}/uploads/${filename}`
+            }
+            console.log('修正后的视频URL:', fileUrl.value)
           }
           
           emit('update:fileUrl', fileUrl.value)
@@ -266,8 +297,11 @@ export default {
       
       emit('file-change', uploadFile)
       
-      if (props.autoUpload && uploadFile) {
-        upload()
+      // 如果设置了自动上传，在文件选择后立即上传
+      if (props.autoUpload && uploadFile && uploadFile.raw) {
+        nextTick(() => {
+          upload()
+        })
       }
     }
     
@@ -396,6 +430,19 @@ export default {
   max-height: 200px;
   display: block;
   margin: 0 auto;
+}
+
+.video-info {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-name {
+  font-size: 14px;
+  color: #606266;
+  word-break: break-all;
 }
 
 .preview-error {

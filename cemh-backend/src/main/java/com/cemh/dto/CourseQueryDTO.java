@@ -40,6 +40,11 @@ public class CourseQueryDTO {
      */
     private Integer size = 10;
     
+    /**
+     * 备注，用于表示审核状态（0：审核通过，1：未审核，2：审核失败）
+     */
+    private String remark;
+    
     // Getter and Setter methods
     public String getCourseName() {
         return courseName;
@@ -99,5 +104,13 @@ public class CourseQueryDTO {
         if (size != null && size > 0) {
             this.size = size;
         }
+    }
+    
+    public String getRemark() {
+        return remark;
+    }
+    
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 } 

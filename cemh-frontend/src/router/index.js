@@ -208,6 +208,12 @@ const routes = [
         meta: { title: '课程管理' }
       },
       {
+        path: 'course-review',
+        name: 'CourseReview',
+        component: () => import('@/views/course/CourseReview.vue'),
+        meta: { title: '课程审核' }
+      },
+      {
         path: 'course-detail/:id',
         name: 'CourseDetail',
         component: () => import('@/views/course/CourseDetail.vue'),

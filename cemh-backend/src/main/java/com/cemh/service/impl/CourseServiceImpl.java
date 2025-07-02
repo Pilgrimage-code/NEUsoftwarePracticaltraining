@@ -89,6 +89,16 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             if (course.getIsHot() == null) course.setIsHot(0);
             if (course.getCourseOrder() == null) course.setCourseOrder(0);
             
+            // 设置审核状态为未审核(1)
+            course.setRemark("1");
+            
+            // 获取当前最大ID，并设置新ID为最大ID+1
+            Long maxId = courseMapper.selectMaxId();
+            if (maxId != null) {
+                course.setId(maxId + 1);
+                logger.info("设置新课程ID: {}", course.getId());
+            }
+            
             courseMapper.insert(course);
             
             // 保存章节
@@ -275,7 +285,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
                 queryDTO.getCourseOrder(),
                 queryDTO.getCourseAuthor(),
                 queryDTO.getStatus(),
-                queryDTO.getCategoryId()
+                queryDTO.getCategoryId(),
+                queryDTO.getRemark()
             );
             
             // 转换为VO列表
@@ -514,6 +525,13 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
                 return Result.error("课程不存在");
             }
             
+            // 获取当前最大章节ID，并设置新ID为最大ID+1
+            Long maxChapterId = chapterMapper.selectMaxId();
+            if (maxChapterId != null) {
+                chapter.setId(maxChapterId + 1);
+                logger.info("设置新章节ID: {}", chapter.getId());
+            }
+            
             // 设置租户ID
             chapter.setTenantId(course.getTenantId());
             chapter.setCreateTime(LocalDateTime.now());
@@ -631,6 +649,50 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         } catch (Exception e) {
             logger.error("更新学习进度异常", e);
             return Result.error("更新学习进度失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<Void> reviewCourse(Long id, Integer status, String reviewComment, Long tenantId, Long userId) {
+        try {
+            // 校验课程是否存在
+            Course course = courseMapper.selectById(id);
+            if (course == null) {
+                return Result.error("课程不存在");
+            }
+            
+            // 校验审核状态
+            if (status != 0 && status != 2) {
+                return Result.error("无效的审核状态");
+            }
+            
+            // 更新课程审核状态
+            Course updateCourse = new Course();
+            updateCourse.setId(id);
+            updateCourse.setRemark(status.toString()); // 设置remark为审核状态
+            updateCourse.setUpdateTime(LocalDateTime.now());
+            updateCourse.setUpdateBy(userId);
+            
+            // 如果有审核备注，则添加到课程描述中
+            if (StringUtils.hasText(reviewComment)) {
+                String description = course.getDescription();
+                if (description == null) {
+                    description = "";
+                }
+                description += "\n\n审核备注：" + reviewComment;
+                updateCourse.setDescription(description);
+            }
+            
+            // 更新课程状态
+            int result = courseMapper.updateById(updateCourse);
+            if (result > 0) {
+                return Result.success();
+            } else {
+                return Result.error("审核课程失败");
+            }
+        } catch (Exception e) {
+            logger.error("审核课程失败", e);
+            return Result.error("审核课程失败: " + e.getMessage());
         }
     }
 } 

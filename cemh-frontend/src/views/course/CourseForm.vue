@@ -46,11 +46,26 @@
       <el-form-item label="课程视频" prop="videoUrl">
         <file-upload
           v-model="form.videoUrl"
+          ref="videoUpload"
           file-type="video"
           button-text="上传视频"
           :tip="'支持 mp4 格式，大小不超过 50MB'"
           :max-size="50"
+          :initial-file-url="form.videoUrl"
+          :auto-upload="true"
+          @upload-success="handleVideoUploadSuccess"
+          @upload-progress="handleVideoUploadProgress"
+          @file-change="handleVideoFileChange"
         />
+        <div v-if="videoUploadStatus.uploading" class="video-upload-progress">
+          <el-progress 
+            :percentage="videoUploadStatus.progress" 
+            :status="videoUploadStatus.status"
+            :stroke-width="10"
+            :show-text="true"
+          />
+          <div class="upload-status-text">{{ videoUploadStatusText }}</div>
+        </div>
       </el-form-item>
       
       <el-form-item label="课程状态" prop="status">
@@ -78,7 +93,7 @@
 </template>
 
 <script>
-import { ref, reactive, defineComponent, watch } from 'vue'
+import { ref, reactive, defineComponent, watch, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import FileUpload from '@/components/FileUpload.vue'
 import { courseApi } from '@/api/course'
@@ -120,6 +135,24 @@ export default defineComponent({
       remark: ''
     })
     
+    // 视频上传状态
+    const videoUploadStatus = reactive({
+      uploading: false,
+      progress: 0,
+      status: '', // success, exception, ''
+    })
+    
+    // 计算视频上传状态文本
+    const videoUploadStatusText = computed(() => {
+      if (videoUploadStatus.status === 'success') {
+        return '上传成功'
+      } else if (videoUploadStatus.status === 'exception') {
+        return '上传失败'
+      } else {
+        return `上传中 ${videoUploadStatus.progress}%`
+      }
+    })
+    
     // 表单验证规则
     const rules = {
       courseName: [
@@ -139,7 +172,14 @@ export default defineComponent({
         { required: true, message: '请上传课程封面', trigger: 'change' }
       ],
       videoUrl: [
-        { required: true, message: '请上传课程视频', trigger: 'change' }
+        { required: true, message: '请上传课程视频', trigger: 'change' },
+        { validator: (rule, value, callback) => {
+          if (value && value.trim() !== '') {
+            callback(); // 有值则通过验证
+          } else {
+            callback(new Error('请上传课程视频'));
+          }
+        }, trigger: 'change' }
       ]
     }
     
@@ -166,6 +206,40 @@ export default defineComponent({
       } else {
         ElMessage.error(response.message || '图片上传失败')
       }
+    }
+    
+    // 视频上传成功回调
+    const handleVideoUploadSuccess = (data) => {
+      form.videoUrl = data.url
+      ElMessage.success('视频上传成功')
+      // 更新上传状态
+      videoUploadStatus.uploading = false
+      videoUploadStatus.progress = 100
+      videoUploadStatus.status = 'success'
+      
+      console.log('设置课程视频URL:', form.videoUrl)
+      
+      // 手动触发表单验证更新
+      if (formRef.value) {
+        formRef.value.validateField('videoUrl')
+      }
+    }
+    
+    // 处理视频文件变更
+    const handleVideoFileChange = (file) => {
+      console.log('视频文件已选择:', file.name)
+      // 重置上传状态
+      videoUploadStatus.uploading = true
+      videoUploadStatus.progress = 0
+      videoUploadStatus.status = ''
+    }
+    
+    // 处理视频上传进度
+    const handleVideoUploadProgress = (percentage) => {
+      console.log('视频上传进度:', percentage)
+      videoUploadStatus.progress = percentage
+      // 只有在上传中时才显示进度条
+      videoUploadStatus.uploading = percentage < 100
     }
     
     // 如果是编辑模式，获取课程详情
@@ -195,6 +269,19 @@ export default defineComponent({
       }
     }, { immediate: true })
     
+    // 监听videoUrl的变化，确保FileUpload组件正确更新
+    const videoUpload = ref(null)
+    watch(() => form.videoUrl, (newVal) => {
+      if (newVal && videoUpload.value) {
+        // 当有值并且组件已挂载时，手动更新验证状态
+        nextTick(() => {
+          if (formRef.value) {
+            formRef.value.validateField('videoUrl')
+          }
+        })
+      }
+    })
+    
     // 提交表单
     const submitForm = async () => {
       if (!formRef.value) return
@@ -202,6 +289,19 @@ export default defineComponent({
       await formRef.value.validate(async (valid) => {
         if (!valid) {
           return false
+        }
+        
+        // 在提交前处理视频URL，确保使用相对路径格式
+        if (form.videoUrl && form.videoUrl.startsWith('http')) {
+          // 从URL中提取文件名部分
+          const urlParts = form.videoUrl.split('/')
+          const fileName = urlParts[urlParts.length - 1]
+          
+          if (fileName) {
+            // 使用/uploads/文件名格式
+            form.videoUrl = `/uploads/${fileName}`
+            console.log('提交前格式化URL为相对路径:', form.videoUrl)
+          }
         }
         
         loading.value = true
@@ -243,7 +343,13 @@ export default defineComponent({
       submitForm,
       cancel,
       beforeCoverUpload,
-      handleCoverSuccess
+      handleCoverSuccess,
+      handleVideoUploadSuccess,
+      videoUpload,
+      videoUploadStatus,
+      videoUploadStatusText,
+      handleVideoFileChange,
+      handleVideoUploadProgress
     }
   }
 })
@@ -267,5 +373,17 @@ export default defineComponent({
 .cover-icon {
   font-size: 32px;
   color: #aaa;
+}
+
+.video-upload-progress {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 350px;
+}
+
+.upload-status-text {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #606266;
 }
 </style> 
