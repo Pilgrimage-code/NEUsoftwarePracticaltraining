@@ -126,3 +126,13 @@ export const userApi = {
   }
 }
 
+export const tenantApi = {
+  // 获取租户列表
+  getTenantList() {
+    return request({
+      url: '/api/tenants/all',
+      method: 'get'
+    })
+  }
+}
+

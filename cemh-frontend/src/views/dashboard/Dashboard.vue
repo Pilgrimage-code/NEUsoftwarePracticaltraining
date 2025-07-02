@@ -75,19 +75,20 @@
         <div class="stat-bg-pattern"></div>
       </div>
 
-      <div class="stat-card registrations" @click="navigateTo('/dashboard/analytics')">
+      <div class="stat-card registrations" @click="navigateTo('/dashboard/tenants')">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51 10.94 9.51 10.02C9.51 9.18 10.16 8.49 10.96 8.49H12.84C13.76 8.49 14.51 9.27 14.51 10.24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M12 7.5V16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2C17.52 2 22 6.48 22 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 21V3h18v18H3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 21V9h6v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 13h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 17h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <div class="stat-content">
-          <h3>{{ stats.totalRegistrations }}</h3>
-          <p>会议报名</p>
+          <h3>{{ stats.totalTenants }}</h3>
+          <p>租户数量</p>
           <div class="stat-trend">
-            <span class="trend-up">↗ +23%</span>
+            <span class="trend-up">↗ +5%</span>
           </div>
         </div>
         <div class="stat-bg-pattern"></div>
@@ -126,50 +127,6 @@
           </div>
           <div class="card-body">
             <div ref="typeChartRef" class="chart-container"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 详细数据 -->
-      <div class="data-section">
-        <!-- 部门参与度 -->
-        <div class="data-card">
-          <div class="card-header">
-            <h2>部门参与度排行</h2>
-          </div>
-          <div class="card-body">
-            <div class="department-list">
-              <div 
-                v-for="(dept, index) in departmentData" 
-                :key="dept.name"
-                class="department-item"
-              >
-                <div class="dept-rank">{{ index + 1 }}</div>
-                <div class="dept-info">
-                  <div class="dept-name">{{ dept.name }}</div>
-                  <div class="dept-stats">
-                    {{ dept.meetings }}场会议 • {{ dept.participants }}人参与
-                  </div>
-                </div>
-                <div class="dept-progress">
-                  <el-progress 
-                    :percentage="dept.participation" 
-                    :stroke-width="8"
-                    :show-text="false"
-                  />
-                  <span class="progress-text">{{ dept.participation }}%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- 热门时段 -->
-        <div class="data-card">
-          <div class="card-header">
-            <h2>热门会议时段</h2>
-          </div>
-          <div class="card-body">
-            <div ref="heatmapChartRef" class="chart-container"></div>
           </div>
         </div>
       </div>
@@ -262,16 +219,21 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
+import { meetingApi } from '@/api/meeting'
+import { userApi } from '@/api/user'
+import { newsApi } from '@/api/news'
+import { tenantApi } from '@/api/user'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 // 统计数据
 const stats = reactive({
-  totalMeetings: 156,
-  totalUsers: 1248,
-  totalNews: 89,
-  totalRegistrations: 2341
+  totalMeetings: 0,
+  totalUsers: 0,
+  totalNews: 0,
+  totalRegistrations: 0,
+  totalTenants: 0
 })
 
 // 数据分析区相关响应式数据
@@ -293,9 +255,9 @@ const behaviorMetrics = ref({
 })
 
 const realtimeData = ref({
-  onlineUsers: 234,
-  activeMeetings: 12,
-  newUsers: 18,
+  onlineUsers: 1,
+  activeMeetings: 0,
+  newUsers: 2,
   responseTime: 156
 })
 
@@ -309,7 +271,7 @@ let trendChart = null
 let typeChart = null
 let heatmapChart = null
 let behaviorChart = null
-let realtimeTimer = null
+let responseTimeTimer = null
 
 // 图表初始化方法
 const initCharts = async () => {
@@ -323,17 +285,22 @@ const initCharts = async () => {
 const initTrendChart = () => {
   if (!trendChartRef.value) return
   trendChart = echarts.init(trendChartRef.value)
+  // 图片中的会议数据
+  const xData = [
+    '2024/06/20 14:00',
+    '2024/06/21 15:00',
+    '2024/06/24 14:00',
+    '2024/06/25 09:00',
+    '2025/06/28 17:47',
+    '2024-06-22 11:30:00'
+  ]
+  const yData = [8, 5, 3, 45, 0, 1]
   const option = {
-    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
-    legend: { data: ['会议数量', '参与人数'] },
-    xAxis: { type: 'category', data: ['06-14', '06-15', '06-16', '06-17', '06-18', '06-19', '06-20'] },
-    yAxis: [
-      { type: 'value', name: '会议数量', position: 'left' },
-      { type: 'value', name: '参与人数', position: 'right' }
-    ],
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    xAxis: { type: 'category', data: xData, axisLabel: { rotate: 30 } },
+    yAxis: { type: 'value', name: '参会人数' },
     series: [
-      { name: '会议数量', type: 'line', data: [12, 15, 18, 14, 22, 19, 25], smooth: true, itemStyle: { color: '#667eea' } },
-      { name: '参与人数', type: 'bar', yAxisIndex: 1, data: [156, 189, 234, 178, 298, 245, 325], itemStyle: { color: '#f093fb' } }
+      { name: '参会人数', type: 'bar', data: yData, itemStyle: { color: '#667eea' } }
     ]
   }
   trendChart.setOption(option)
@@ -445,18 +412,6 @@ const updateBehaviorData = () => {
   updateBehaviorChart()
 }
 
-const startRealtimeUpdate = () => {
-  realtimeTimer = setInterval(() => {
-    realtimeData.value.onlineUsers += Math.floor(Math.random() * 10 - 5)
-    realtimeData.value.activeMeetings += Math.floor(Math.random() * 3 - 1)
-    realtimeData.value.newUsers += Math.floor(Math.random() * 5)
-    realtimeData.value.responseTime += Math.floor(Math.random() * 20 - 10)
-    realtimeData.value.onlineUsers = Math.max(200, Math.min(300, realtimeData.value.onlineUsers))
-    realtimeData.value.activeMeetings = Math.max(8, Math.min(20, realtimeData.value.activeMeetings))
-    realtimeData.value.responseTime = Math.max(100, Math.min(200, realtimeData.value.responseTime))
-  }, 3000)
-}
-
 const resizeCharts = () => {
   trendChart?.resize()
   typeChart?.resize()
@@ -464,14 +419,22 @@ const resizeCharts = () => {
   behaviorChart?.resize()
 }
 
+const startResponseTimeUpdate = () => {
+  responseTimeTimer = setInterval(() => {
+    realtimeData.value.responseTime += Math.floor(Math.random() * 20 - 10)
+    realtimeData.value.responseTime = Math.max(100, Math.min(200, realtimeData.value.responseTime))
+  }, 3000)
+}
+
 onMounted(() => {
+  fetchStats()
   initCharts()
-  startRealtimeUpdate()
+  startResponseTimeUpdate()
   window.addEventListener('resize', resizeCharts)
 })
 
 onUnmounted(() => {
-  if (realtimeTimer) clearInterval(realtimeTimer)
+  if (responseTimeTimer) clearInterval(responseTimeTimer)
   window.removeEventListener('resize', resizeCharts)
   trendChart?.dispose()
   typeChart?.dispose()
@@ -538,6 +501,27 @@ const getMeetingTypeText = (type) => {
     4: '其他'
   }
   return texts[type] || '其他'
+}
+
+// 获取真实统计数据
+const fetchStats = async () => {
+  const tenantId = localStorage.getItem('tenantId')
+  try {
+    // 会议数
+    const meetingRes = await meetingApi.getMeetingList({ page: 1, size: 1 }, tenantId)
+    stats.totalMeetings = meetingRes?.data?.total || 0
+    // 用户数
+    const userRes = await userApi.getUserList({ page: 1, size: 1, tenantId })
+    stats.totalUsers = userRes?.data?.total || 0
+    // 资讯数
+    const newsRes = await newsApi.getNewsList({ page: 1, size: 1 }, tenantId)
+    stats.totalNews = newsRes?.data?.total || 0
+    // 租户数
+    const tenantRes = await tenantApi.getTenantList()
+    stats.totalTenants = Array.isArray(tenantRes?.data) ? tenantRes.data.length : 0
+  } catch (e) {
+    ElMessage.error('获取统计数据失败')
+  }
 }
 </script>
 

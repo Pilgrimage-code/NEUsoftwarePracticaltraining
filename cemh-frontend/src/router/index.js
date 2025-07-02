@@ -203,16 +203,7 @@ const routes = [
           requiresAuth: true
         }
       },
-      // 个人中心路由
-      {
-        path: 'profile',
-        name: 'Profile',
-        component: () => import('@/views/dashboard/Profile.vue'),
-        meta: {
-          title: '个人中心',
-          requiresAuth: true
-        }
-      }
+
     ]
   },
   {
