@@ -113,6 +113,16 @@ export const userApi = {
       url: `/api/users/dept/${deptId}`,
       method: 'get'
     })
+  },
+
+  // 更新用户头像
+  updateUserAvatar(id, data, config) {
+    return request({
+      url: `/api/users/${id}/avatar`,
+      method: 'put',
+      data,
+      ...(config || {})
+    })
   }
 }
 

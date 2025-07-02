@@ -200,5 +200,27 @@ public class SysUserController {
         vo.setAvatar(created.getAvatar());
         return Result.success(vo);
     }
+    
+    @Operation(summary = "修改头像")
+    @PutMapping("/{id}/avatar")
+    public Result<Void> updateAvatar(@Parameter(description = "用户ID") @PathVariable Long id,
+                                     @RequestBody java.util.Map<String, String> body,
+                                     @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                     @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        String avatar = body.get("avatar");
+        if (avatar == null || avatar.trim().isEmpty()) {
+            return Result.error("头像不能为空");
+        }
+        SysUser user = new SysUser();
+        user.setId(id);
+        user.setAvatar(avatar);
+        if (tenantId != null) {
+            user.setTenantId(tenantId);
+        }
+        if (userId != null) {
+            user.setUpdateBy(userId);
+        }
+        return sysUserService.updateUserAvatar(user);
+    }
 }
 

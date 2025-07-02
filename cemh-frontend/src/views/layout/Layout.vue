@@ -93,8 +93,8 @@
           </div>
           <transition name="fade">
             <div v-show="!sidebarCollapsed" class="user-details">
-              <div class="user-name">{{ userStore.userInfo?.nickname || '用户' }}</div>
-              <div class="user-role">{{ userStore.userInfo?.roleName || '普通用户' }}</div>
+              <div class="user-name">{{ userStore.userInfo?.username || '用户' }}</div>
+              <div class="user-role">{{ userStore.userInfo?.nickname || '普通用户' }}</div>
             </div>
           </transition>
         </div>
