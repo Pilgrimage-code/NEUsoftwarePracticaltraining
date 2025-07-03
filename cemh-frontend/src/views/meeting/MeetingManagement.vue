@@ -141,10 +141,10 @@
         
         <el-table-column prop="location" label="会议地点" min-width="150" />
         
-        <el-table-column prop="registrationCount" label="报名人数" width="100" align="center">
+        <el-table-column prop="currentParticipants" label="报名人数" width="100" align="center">
           <template #default="{ row }">
             <el-link type="primary" @click="viewRegistrations(row.id)">
-              {{ row.registrationCount || 0 }}人
+              {{ row.currentParticipants || 0 }}人
             </el-link>
           </template>
         </el-table-column>
@@ -423,6 +423,7 @@ const loadMeetingList = async () => {
     if(response.code == 200) {
       meetingList.value = response.data.records || []
       total.value = response.data.total || 0
+      console.log(meetingList.value)
     } else {
       ElMessage.error(response.message || '加载会议列表失败');
     }

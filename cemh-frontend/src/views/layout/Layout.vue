@@ -93,8 +93,8 @@
           </div>
           <transition name="fade">
             <div v-show="!sidebarCollapsed" class="user-details">
-              <div class="user-name">{{ userStore.userInfo?.nickname || '用户' }}</div>
-              <div class="user-role">{{ userStore.userInfo?.roleName || '普通用户' }}</div>
+              <div class="user-name">{{ userStore.userInfo?.username || '用户' }}</div>
+              <div class="user-role">{{ userStore.userInfo?.nickname || '普通用户' }}</div>
             </div>
           </transition>
         </div>
@@ -135,7 +135,6 @@
               <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6981 21.5547 10.4458 21.3031 10.27 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span v-if="unreadNotifications > 0" class="notification-badge">{{ unreadNotifications }}</span>
           </div>
 
           <!-- 用户菜单 -->
@@ -245,8 +244,7 @@ const mainMenuItems = ref([
       <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
-    </svg>`,
-    badge: '5'
+    </svg>`
   },
   {
     path: '/dashboard/news',
@@ -289,33 +287,7 @@ const systemMenuItems = ref([
     path: '/dashboard/tenants',
     title: '租户管理',
     icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21M23 21V19C23 16.7909 21.2091 15 19 15H17M13 7C13 9.20914 11.2091 11 9 11C6.79086 11 5 9.20914 5 7C5 4.79086 6.79086 3 9 3C11.2091 3 13 4.79086 13 7ZM23 7C23 9.20914 21.2091 11 19 11C16.7909 11 15 9.20914 15 7C15 4.79086 16.7909 3 19 3C21.2091 3 23 4.79086 23 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`
-  },
-  {
-    path: '/dashboard/files',
-    title: '文件管理',
-    icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M13 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V9L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <polyline points="13,2 13,9 20,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`
-  },
-  {
-    path: '/dashboard/analytics',
-    title: '数据分析',
-    icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <line x1="18" y1="20" x2="18" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <line x1="12" y1="20" x2="12" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <line x1="6" y1="20" x2="6" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>`
-  },
-  {
-    path: '/dashboard/system',
-    title: '系统监控',
-    icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-      <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21M23 21V19C23 16.7909 21.2091 15 19 15H17M13 7C13 9.20914 11.2091 11 9 11C6.79086 11 5 9.20914 5 7C5 4.79086 6.79086 3 9 3C11.2091 3 13 4.79086 13 7ZM23 7C23 9.20914 21.2091 11 19 11C16.7909 11 15 9.20914 15 7C15 4.79086 16.79086 3 19 3C21.2091 3 23 4.79086 23 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`
   }
 ])
@@ -814,20 +786,6 @@ watch(route, () => {
   width: 20px;
   height: 20px;
   color: #64748b;
-}
-
-.notification-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  background: #ef4444;
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 18px;
-  text-align: center;
 }
 
 /* 用户菜单 */
