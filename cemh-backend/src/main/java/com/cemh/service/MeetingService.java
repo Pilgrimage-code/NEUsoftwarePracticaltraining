@@ -5,6 +5,7 @@ import com.cemh.common.Result;
 import com.cemh.dto.MeetingDTO;
 import com.cemh.dto.MeetingQueryDTO;
 import com.cemh.entity.Meeting;
+import com.cemh.entity.MeetingRegistration;
 import com.cemh.vo.MeetingVO;
 
 /**
@@ -77,5 +78,15 @@ public interface MeetingService {
      * @return 操作结果
      */
     Result<Void> topMeeting(Long id, Boolean isTop, Long tenantId, Long userId);
+
+    /**
+     * 注册会议
+     * @param meetingId 会议ID
+     * @param registration 注册信息
+     * @param tenantId 租户ID
+     * @param userId 操作用户ID
+     * @return 操作结果
+     */
+    Result<Void> registerMeeting(Long meetingId, MeetingRegistration registration, Long tenantId, Long userId);
 }
 

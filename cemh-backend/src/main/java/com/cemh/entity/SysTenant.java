@@ -223,4 +223,3 @@ public class SysTenant {
         this.updateBy = updateBy;
     }
 }
-

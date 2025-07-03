@@ -95,5 +95,10 @@ public interface SysUserService {
      * 根据用户名查询用户
      */
     Result<SysUser> getByUsername(String username, Long tenantId);
+
+    /**
+     * 只更新用户头像
+     */
+    Result<Void> updateUserAvatar(SysUser user);
 }
 

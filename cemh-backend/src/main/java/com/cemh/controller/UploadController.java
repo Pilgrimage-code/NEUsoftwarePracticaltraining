@@ -1,12 +1,14 @@
 package com.cemh.controller;
 
 import com.cemh.common.Result;
+import com.cemh.utils.AliyunOSSOperator;
 import com.cemh.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +28,9 @@ import java.util.Map;
 public class UploadController {
     
     private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
+
+    @Autowired
+    private AliyunOSSOperator aliyunOSSOperator;
     
     @Value("${file.upload.path:D:/uploads}")
     private String uploadPath;
@@ -68,19 +73,27 @@ public class UploadController {
             }
             String dateStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
             String filename = dateStr + "_" + java.util.UUID.randomUUID().toString() + extension;
+
             // 保存文件
-            File destFile = new File(uploadDir, filename);
-            file.transferTo(destFile);
+//            File destFile = new File(uploadDir, filename);
+//            file.transferTo(destFile);
+
+            //阿里云保存
+            String url = aliyunOSSOperator.upload(file.getBytes(), filename);
             // 返回文件信息
             Map<String, Object> result = new HashMap<>();
             result.put("filename", filename);
             result.put("originalName", originalFilename);
             result.put("size", file.getSize());
-            result.put("url", urlPrefix + "/" + filename);
+//            result.put("url", urlPrefix + "/" + filename);
+            //阿里云
+            result.put("url", url);
             return Result.success(result);
         } catch (IOException e) {
             logger.error("上传图片失败", e);
             return Result.error("文件上传失败：" + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
     
@@ -124,10 +137,27 @@ public class UploadController {
     @Operation(summary = "上传文档")
     @PostMapping("/document")
     public Result<Map<String, String>> uploadDocument(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return Result.error("请选择要上传的文件");
+        }
+        // 检查文件大小（5MB）
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return Result.error("文件大小不能超过5MB");
+        }
         try {
             logger.info("上传文档: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
-            String filePath = FileUtils.saveFile(file, "document");
-            String url = buildFullUrl(filePath);
+            //String filePath = FileUtils.saveFile(file, "document");
+            // 生成文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String dateStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String filename = dateStr + "_" + java.util.UUID.randomUUID().toString() + extension;
+            //阿里云保存
+            String url = aliyunOSSOperator.upload(file.getBytes(), filename);
+            //String url = buildFullUrl(filePath);
             
             Map<String, String> data = new HashMap<>();
             data.put("url", url);
@@ -138,6 +168,8 @@ public class UploadController {
         } catch (IOException e) {
             logger.error("上传文档失败", e);
             return Result.error("上传文档失败: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
     
@@ -146,18 +178,30 @@ public class UploadController {
     public Result<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
             logger.info("上传文件: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
-            String filePath = FileUtils.saveFile(file, "other");
-            String url = buildFullUrl(filePath);
-            
+            //String filePath = FileUtils.saveFile(file, "other");
+            // 生成文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String dateStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String filename = dateStr + "_" + java.util.UUID.randomUUID().toString() + extension;
+            //阿里云保存
+            String url = aliyunOSSOperator.upload(file.getBytes(), filename);
+            //String url = buildFullUrl(filePath);
+
             Map<String, String> data = new HashMap<>();
             data.put("url", url);
             data.put("name", file.getOriginalFilename());
             data.put("size", FileUtils.getFileSizeDisplay(file.getSize()));
-            
+
             return Result.success(data);
         } catch (IOException e) {
             logger.error("上传文件失败", e);
             return Result.error("上传文件失败: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
     

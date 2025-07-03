@@ -136,16 +136,7 @@ const routes = [
           requiresAuth: true
         }
       },
-      // 系统管理路由
-      {
-        path: 'roles',
-        name: 'RoleManagement',
-        component: () => import('@/views/system/RoleManagement.vue'),
-        meta: {
-          title: '角色管理',
-          requiresAuth: true
-        }
-      },
+
       {
         path: 'departments',
         name: 'DeptManagement',
@@ -173,33 +164,9 @@ const routes = [
           requiresAuth: true
         }
       },
-      {
-        path: 'files',
-        name: 'FileManagement',
-        component: () => import('@/views/system/FileManagement.vue'),
-        meta: {
-          title: '文件管理',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'analytics',
-        name: 'Analytics',
-        component: () => import('@/views/system/Analytics.vue'),
-        meta: {
-          title: '数据分析',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'system-monitor',
-        name: 'SystemMonitor',
-        component: () => import('@/views/system/SystemMonitor.vue'),
-        meta: {
-          title: '系统监控',
-          requiresAuth: true
-        }
-      },
+
+
+
       // 课程管理路由
       {
         path: 'course-management',
@@ -231,16 +198,7 @@ const routes = [
         component: () => import('@/views/course/LearningDetail.vue'),
         meta: { title: '学习详情' }
       },
-      // 统计分析路由
-      {
-        path: 'statistics',
-        name: 'Statistics',
-        component: () => import('@/views/dashboard/Statistics.vue'),
-        meta: {
-          title: '统计分析',
-          requiresAuth: true
-        }
-      },
+
       // 数据分析Chat路由
       {
         path: 'chat',
@@ -251,16 +209,7 @@ const routes = [
           requiresAuth: true
         }
       },
-      // 个人中心路由
-      {
-        path: 'profile',
-        name: 'Profile',
-        component: () => import('@/views/dashboard/Profile.vue'),
-        meta: {
-          title: '个人中心',
-          requiresAuth: true
-        }
-      }
+
     ]
   },
   {

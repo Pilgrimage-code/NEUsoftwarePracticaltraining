@@ -28,14 +28,19 @@
     <el-form-item label="头像" prop="avatar">
       <el-upload
         class="avatar-uploader"
-        action="/api/upload/avatar"
+        :action="uploadAction"
+        :headers="uploadHeaders"
         :show-file-list="false"
-        :on-success="handleAvatarSuccess"
         :before-upload="beforeAvatarUpload"
+        :on-success="handleAvatarSuccess"
+        :on-error="handleAvatarError"
         accept="image/*"
       >
         <img v-if="form.avatar" :src="form.avatar" class="avatar" />
-        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        <div v-else class="avatar-uploader-placeholder">
+          <i class="el-icon-plus avatar-uploader-icon"></i>
+          <span style="color:#bbb;font-size:12px;">点击上传</span>
+        </div>
       </el-upload>
     </el-form-item>
     <el-form-item label="验证码" prop="captcha">
@@ -90,6 +95,10 @@ export default {
     const deptList = ref([])
     const loading = ref(false)
     const captchaImg = ref('')
+    const uploadAction = 'http://localhost:8080/api/upload/image'
+    const uploadHeaders = {
+      Authorization: 'Bearer ' + (localStorage.getItem('token') || '')
+    }
 
     const fetchTenants = async () => {
       try {
@@ -123,20 +132,27 @@ export default {
         form.captchaKey = res.data.key
       }
     }
-    const handleAvatarSuccess = (res) => {
-      if (res.code === 200) {
-        form.avatar = res.data.url
+    const handleAvatarSuccess = (response) => {
+      if (response.code === 200) {
+        form.avatar = response.data.url
         ElMessage.success('头像上传成功')
       } else {
-        ElMessage.error(res.message || '头像上传失败')
+        ElMessage.error(response.message || '头像上传失败')
       }
     }
+    const handleAvatarError = () => {
+      ElMessage.error('头像上传失败')
+    }
     const beforeAvatarUpload = (file) => {
-      const isImage = file.type.startsWith('image/')
+      const isJPG = file.type === 'image/jpeg' || file.type === 'image/png'
       const isLt2M = file.size / 1024 / 1024 < 2
-      if (!isImage) ElMessage.error('只能上传图片文件!')
-      if (!isLt2M) ElMessage.error('图片大小不能超过2MB!')
-      return isImage && isLt2M
+      if (!isJPG) {
+        ElMessage.error('上传头像图片只能是 JPG/PNG 格式!')
+      }
+      if (!isLt2M) {
+        ElMessage.error('上传头像图片大小不能超过 2MB!')
+      }
+      return isJPG && isLt2M
     }
     const submitForm = () => {
       formRef.value.validate(async (valid) => {
@@ -166,7 +182,7 @@ export default {
     watch(() => form.tenantId, (val) => {
       fetchDepts(val)
     })
-    return { formRef, form, rules, tenantList, deptList, loading, captchaImg, fetchDepts, refreshCaptcha, handleAvatarSuccess, beforeAvatarUpload, submitForm }
+    return { formRef, form, rules, tenantList, deptList, loading, captchaImg, fetchDepts, refreshCaptcha, handleAvatarSuccess, beforeAvatarUpload, submitForm, uploadAction, uploadHeaders, handleAvatarError }
   }
 }
 </script>

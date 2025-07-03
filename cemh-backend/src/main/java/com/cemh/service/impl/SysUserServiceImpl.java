@@ -34,8 +34,12 @@ public class SysUserServiceImpl implements SysUserService {
         try {
             Page<SysUser> page = new Page<>(pageNum, pageSize);
             QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("tenant_id", tenantId)
-                       .eq("deleted", 0);
+            
+            // 如果tenantId不为空，才添加租户条件
+            if (tenantId != null) {
+                queryWrapper.eq("tenant_id", tenantId);
+            }
+            queryWrapper.eq("deleted", 0);
             
             if (username != null && !username.trim().isEmpty()) {
                 queryWrapper.like("username", username);
@@ -388,6 +392,35 @@ public class SysUserServiceImpl implements SysUserService {
                 .eq("username", username)
                 .eq("tenant_id", tenantId));
         return user != null ? Result.success(user) : Result.error("用户不存在");
+    }
+    
+    @Override
+    public Result<Void> updateUserAvatar(SysUser user) {
+        try {
+            // 检查用户是否存在
+            SysUser existingUser = sysUserMapper.selectById(user.getId());
+            if (existingUser == null) {
+                return Result.error("用户不存在");
+            }
+            // 检查租户权限
+            if (user.getTenantId() != null && !existingUser.getTenantId().equals(user.getTenantId())) {
+                return Result.error("无权限修改此用户");
+            }
+            // 只更新头像和更新时间
+            existingUser.setAvatar(user.getAvatar());
+            existingUser.setUpdateTime(java.time.LocalDateTime.now());
+            if (user.getUpdateBy() != null) {
+                existingUser.setUpdateBy(user.getUpdateBy());
+            }
+            int result = sysUserMapper.updateById(existingUser);
+            if (result > 0) {
+                return Result.success();
+            } else {
+                return Result.error("头像更新失败");
+            }
+        } catch (Exception e) {
+            return Result.error("头像更新失败：" + e.getMessage());
+        }
     }
 }
 

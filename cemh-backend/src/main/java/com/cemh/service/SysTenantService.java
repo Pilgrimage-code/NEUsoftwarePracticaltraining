@@ -10,5 +10,3 @@ public interface SysTenantService extends IService<SysTenant> {
     Result<List<SysTenant>> getAllTenants();
     boolean existsByCode(String tenantCode);
 }
-
-

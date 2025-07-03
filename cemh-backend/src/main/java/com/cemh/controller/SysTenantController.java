@@ -9,19 +9,11 @@ import com.cemh.service.SysTenantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * 租户管理控制器
- */
 @Tag(name = "租户管理", description = "租户相关接口")
 @RestController
 @RequestMapping("/api/tenants")
@@ -46,7 +38,7 @@ public class SysTenantController {
     @Operation(summary = "企业注册")
     @PostMapping("/register")
     public Result<SysTenant> registerTenant(@RequestBody Map<String, Object> dto) {
-        // 校验验证码（假设有CaptchaService）
+        // 校验验证码
         String captchaKey = (String) dto.get("captchaKey");
         String captcha = (String) dto.get("captcha");
         if (!captchaService.verify(captchaKey, captcha)) {
@@ -66,13 +58,15 @@ public class SysTenantController {
         tenant.setContactEmail((String) dto.get("contactEmail"));
         tenant.setStatus(1);
         sysTenantService.save(tenant);
-        // 插入顶级部门
+
+        // 插入顶级部门 - 关键修改
         SysDept rootDept = new SysDept();
         rootDept.setTenantId(tenant.getId());
-        rootDept.setParentId(0L);
+        rootDept.setParentId(null);  // 设置为null
         rootDept.setDeptName(tenant.getTenantName());
         rootDept.setStatus(1);
         sysDeptService.save(rootDept);
+
         // 插入子部门
         List<String> depts = (List<String>) dto.get("departments");
         if (depts != null) {
@@ -88,5 +82,3 @@ public class SysTenantController {
         return Result.success(tenant);
     }
 }
-
-

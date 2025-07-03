@@ -1,5 +1,6 @@
 package com.cemh.vo;
 
+import com.cemh.entity.MeetingMaterial;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -56,14 +57,14 @@ public class MeetingVO {
     /**
      * 开始时间
      */
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
-    private OffsetDateTime startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime startTime;
     
     /**
      * 结束时间
      */
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
-    private OffsetDateTime endTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
     
     /**
      * 会议地点
@@ -168,63 +169,11 @@ public class MeetingVO {
      */
     private Integer isTop;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public Integer getType() { return type; }
-    public void setType(Integer type) { this.type = type; }
-    public String getTypeText() { return typeText; }
-    public void setTypeText(String typeText) { this.typeText = typeText; }
-    public Integer getStatus() { return status; }
-    public void setStatus(Integer status) { this.status = status; }
-    public String getStatusText() { return statusText; }
-    public void setStatusText(String statusText) { this.statusText = statusText; }
-    public OffsetDateTime getStartTime() { return startTime; }
-    public void setStartTime(OffsetDateTime startTime) { this.startTime = startTime; }
-    public OffsetDateTime getEndTime() { return endTime; }
-    public void setEndTime(OffsetDateTime endTime) { this.endTime = endTime; }
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-    public Integer getMaxParticipants() { return maxParticipants; }
-    public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
-    public Integer getCurrentParticipants() { return currentParticipants; }
-    public void setCurrentParticipants(Integer currentParticipants) { this.currentParticipants = currentParticipants; }
-    public LocalDateTime getRegistrationDeadline() { return registrationDeadline; }
-    public void setRegistrationDeadline(LocalDateTime registrationDeadline) { this.registrationDeadline = registrationDeadline; }
-    public Boolean getRequiresApproval() { return requiresApproval; }
-    public void setRequiresApproval(Boolean requiresApproval) { this.requiresApproval = requiresApproval; }
-    public Double getFee() { return fee; }
-    public void setFee(Double fee) { this.fee = fee; }
-    public String getRequirements() { return requirements; }
-    public void setRequirements(String requirements) { this.requirements = requirements; }
-    public String getTags() { return tags; }
-    public void setTags(String tags) { this.tags = tags; }
-    public String getCoverImage() { return coverImage; }
-    public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
-    public String getRemarks() { return remarks; }
-    public void setRemarks(String remarks) { this.remarks = remarks; }
-    public Long getCreateBy() { return createBy; }
-    public void setCreateBy(Long createBy) { this.createBy = createBy; }
-    public String getCreateByName() { return createByName; }
-    public void setCreateByName(String createByName) { this.createByName = createByName; }
-    public LocalDateTime getCreateTime() { return createTime; }
-    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
-    public LocalDateTime getUpdateTime() { return updateTime; }
-    public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
-    public Long getTenantId() { return tenantId; }
-    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
-    public Boolean getCanRegister() { return canRegister; }
-    public void setCanRegister(Boolean canRegister) { this.canRegister = canRegister; }
-    public Boolean getHasRegistered() { return hasRegistered; }
-    public void setHasRegistered(Boolean hasRegistered) { this.hasRegistered = hasRegistered; }
-    public Long getDuration() { return duration; }
-    public void setDuration(Long duration) { this.duration = duration; }
-    public Long getTimeToStart() { return timeToStart; }
-    public void setTimeToStart(Long timeToStart) { this.timeToStart = timeToStart; }
-    public Integer getIsTop() { return isTop; }
-    public void setIsTop(Integer isTop) { this.isTop = isTop; }
+    /**
+     * 会议材料列表
+     */
+    private List<MeetingMaterial> materials;
+
+
 }
 
