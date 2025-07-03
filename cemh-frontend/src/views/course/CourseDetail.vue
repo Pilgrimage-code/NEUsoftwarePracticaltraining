@@ -563,6 +563,13 @@ export default {
         
         const baseUrl = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080';
         
+        // 处理新格式的视频URL: /uploads/YYYYMMDD_UUID.mp4
+        if (url.match(/^\/uploads\/\d{8}_[a-f0-9-]+\.\w+$/)) {
+          const fullUrl = `${baseUrl}${url}`;
+          console.log('处理新格式视频URL:', fullUrl);
+          return fullUrl;
+        }
+        
         // 处理相对路径
         if (url.startsWith('/')) {
           // 如果是以/开头的绝对路径
@@ -591,8 +598,8 @@ export default {
         return fullUrl;
       } catch (e) {
         console.error('格式化视频URL时出错:', e);
-        // 发生错误时返回一个可用的测试视频
-        return 'https://www.w3schools.com/html/mov_bbb.mp4';
+        // 发生错误时返回原始URL，避免完全无法播放
+        return url;
       }
     }
     

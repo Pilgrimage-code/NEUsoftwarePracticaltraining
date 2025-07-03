@@ -13,6 +13,15 @@ const routes = [
     }
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/auth/Register.vue'),
+    meta: {
+      title: '注册',
+      requiresAuth: false
+    }
+  },
+  {
     path: '/',
     redirect: '/dashboard'
   },
@@ -127,16 +136,7 @@ const routes = [
           requiresAuth: true
         }
       },
-      // 系统管理路由
-      {
-        path: 'roles',
-        name: 'RoleManagement',
-        component: () => import('@/views/system/RoleManagement.vue'),
-        meta: {
-          title: '角色管理',
-          requiresAuth: true
-        }
-      },
+
       {
         path: 'departments',
         name: 'DeptManagement',
@@ -164,39 +164,21 @@ const routes = [
           requiresAuth: true
         }
       },
-      {
-        path: 'files',
-        name: 'FileManagement',
-        component: () => import('@/views/system/FileManagement.vue'),
-        meta: {
-          title: '文件管理',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'analytics',
-        name: 'Analytics',
-        component: () => import('@/views/system/Analytics.vue'),
-        meta: {
-          title: '数据分析',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'system-monitor',
-        name: 'SystemMonitor',
-        component: () => import('@/views/system/SystemMonitor.vue'),
-        meta: {
-          title: '系统监控',
-          requiresAuth: true
-        }
-      },
+
+
+
       // 课程管理路由
       {
         path: 'course-management',
         name: 'CourseManagement',
         component: () => import('@/views/course/CourseManagement.vue'),
         meta: { title: '课程管理' }
+      },
+      {
+        path: 'course-review',
+        name: 'CourseReview',
+        component: () => import('@/views/course/CourseReview.vue'),
+        meta: { title: '课程审核' }
       },
       {
         path: 'course-detail/:id',
@@ -216,26 +198,18 @@ const routes = [
         component: () => import('@/views/course/LearningDetail.vue'),
         meta: { title: '学习详情' }
       },
-      // 统计分析路由
+
+      // 数据分析Chat路由
       {
-        path: 'statistics',
-        name: 'Statistics',
-        component: () => import('@/views/dashboard/Statistics.vue'),
+        path: 'chat',
+        name: 'DataAnalysisChat',
+        component: () => import('@/views/Chat/Chat.vue'),
         meta: {
-          title: '统计分析',
+          title: '数据分析Chat',
           requiresAuth: true
         }
       },
-      // 个人中心路由
-      {
-        path: 'profile',
-        name: 'Profile',
-        component: () => import('@/views/dashboard/Profile.vue'),
-        meta: {
-          title: '个人中心',
-          requiresAuth: true
-        }
-      }
+
     ]
   },
   {

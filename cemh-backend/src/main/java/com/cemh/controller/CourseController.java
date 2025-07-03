@@ -213,4 +213,43 @@ public class CourseController {
         Integer progress = data.get("progress") != null ? Integer.parseInt(data.get("progress").toString()) : 0;
         return courseService.updateLearningProgress(courseId, chapterId, userId, progress);
     }
+    
+    /**
+     * 查询待审核课程列表
+     */
+    @Operation(summary = "查询待审核课程列表")
+    @GetMapping("/pending-review")
+    public Result<PageResult<CourseVO>> getPendingReviewCourses(
+            @Parameter(description = "页码") @RequestParam(defaultValue = "1") Integer page,
+            @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") Integer size,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
+        
+        CourseQueryDTO queryDTO = new CourseQueryDTO();
+        queryDTO.setPage(page);
+        queryDTO.setSize(size);
+        queryDTO.setRemark("1"); // 未审核
+        
+        return courseService.getCoursePage(queryDTO, tenantId);
+    }
+    
+    /**
+     * 审核课程
+     */
+    @Operation(summary = "审核课程")
+    @PutMapping("/{id}/review")
+    public Result<Void> reviewCourse(
+            @Parameter(description = "课程ID") @PathVariable Long id,
+            @Parameter(description = "审核状态，0:通过，2:拒绝") @RequestParam Integer status,
+            @Parameter(description = "审核备注") @RequestParam(required = false) String reviewComment,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        
+        try {
+            logger.info("审核课程，ID: {}, 状态: {}, 租户ID: {}", id, status, tenantId);
+            return courseService.reviewCourse(id, status, reviewComment, tenantId, userId);
+        } catch (Exception e) {
+            logger.error("审核课程失败", e);
+            return Result.error("审核课程失败: " + e.getMessage());
+        }
+    }
 } 

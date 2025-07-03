@@ -1,5 +1,6 @@
 package com.cemh.vo;
 
+import com.cemh.entity.MeetingMaterial;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -56,14 +57,14 @@ public class MeetingVO {
     /**
      * 开始时间
      */
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
-    private OffsetDateTime startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime startTime;
     
     /**
      * 结束时间
      */
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
-    private OffsetDateTime endTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
     
     /**
      * 会议地点
@@ -167,5 +168,12 @@ public class MeetingVO {
      * 是否顶置
      */
     private Integer isTop;
+
+    /**
+     * 会议材料列表
+     */
+    private List<MeetingMaterial> materials;
+
+
 }
 

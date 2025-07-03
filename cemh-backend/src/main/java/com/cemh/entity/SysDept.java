@@ -12,13 +12,6 @@ import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 部门实体类
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-15
- */
 @Schema(description = "部门信息")
 @TableName("sys_dept")
 public class SysDept extends BaseEntity {
@@ -30,9 +23,9 @@ public class SysDept extends BaseEntity {
     @NotNull(message = "租户ID不能为空")
     private Long tenantId;
 
-    @Schema(description = "父部门ID，0表示顶级部门")
+    @Schema(description = "父部门ID")
     @TableField("parent_id")
-    private Long parentId;
+    private Long parentId;  // 使用包装类型Long，允许为null
 
     @Schema(description = "部门编码")
     @TableField("dept_code")
@@ -116,7 +109,7 @@ public class SysDept extends BaseEntity {
 
     public SysDept() {
         this.status = 1; // 默认启用状态
-        this.parentId = 0L; // 默认顶级部门
+        this.parentId = null; // 修改：默认顶级部门，设置为null
         this.deptType = 1; // 默认普通部门
         this.sortOrder = 0; // 默认排序
     }
@@ -311,4 +304,3 @@ public class SysDept extends BaseEntity {
                 "} " + super.toString();
     }
 }
-

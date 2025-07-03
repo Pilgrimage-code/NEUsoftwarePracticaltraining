@@ -127,8 +127,8 @@
         
         <el-table-column prop="type" label="会议类型" width="120">
           <template #default="{ row }">
-            <el-tag :type="getMeetingTypeTag(row.type)">
-              {{ getMeetingTypeText(row.type) }}
+            <el-tag :type="getMeetingTypeTag(row.tags)">
+              {{ getMeetingTypeText(row.tags) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -141,10 +141,10 @@
         
         <el-table-column prop="location" label="会议地点" min-width="150" />
         
-        <el-table-column prop="registrationCount" label="报名人数" width="100" align="center">
+        <el-table-column prop="currentParticipants" label="报名人数" width="100" align="center">
           <template #default="{ row }">
             <el-link type="primary" @click="viewRegistrations(row.id)">
-              {{ row.registrationCount || 0 }}人
+              {{ row.currentParticipants || 0 }}人
             </el-link>
           </template>
         </el-table-column>
@@ -423,6 +423,7 @@ const loadMeetingList = async () => {
     if(response.code == 200) {
       meetingList.value = response.data.records || []
       total.value = response.data.total || 0
+      console.log(meetingList.value)
     } else {
       ElMessage.error(response.message || '加载会议列表失败');
     }
@@ -655,25 +656,29 @@ const formatDateTime = (dateString) => {
 }
 
 // 获取会议类型标签
-const getMeetingTypeTag = (type) => {
+const getMeetingTypeTag = (type ) => {
   const tags = {
-    1: 'primary',
-    2: 'success',
-    3: 'warning',
-    4: 'info'
+    "tech" : 'primary',
+    "product" : 'success',
+    "training" : 'warning',
+    "review" : 'danger',
+    "team" : 'secondary',
   }
   return tags[type] || 'info'
 }
 
 // 获取会议类型文本
-const getMeetingTypeText = (type) => {
+const getMeetingTypeText = (tags) => {
   const texts = {
-    1: '技术交流',
-    2: '产品发布',
-    3: '培训课程',
-    4: '其他'
+    "tech" : '技术分享',
+    "product" : '产品讨论',
+    "training" : '培训学习',
+    "review" : '项目评审',
+    "team" : '团队建设',
+    "" : '其他',
+
   }
-  return texts[type] || '其他'
+  return texts[tags] || '其他'
 }
 
 // 获取会议状态标签
@@ -704,6 +709,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 自定义 secondary 标签样式 */
+.el-tag.secondary {
+  background-color: #b783c6;
+  border-color: #e390e4;
+  color: #cd8ace;
+}
+
 .meeting-management {
   padding: 20px;
   background: #f5f7fa;

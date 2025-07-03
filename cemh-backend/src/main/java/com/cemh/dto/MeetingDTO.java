@@ -1,5 +1,6 @@
 package com.cemh.dto;
 
+import com.cemh.entity.MeetingMaterial;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -109,5 +110,10 @@ public class MeetingDTO {
      * 租户ID
      */
     private Long tenantId;
+
+    /**
+     * 会议材料列表
+     */
+    private List<MeetingMaterial> materials;
 }
 

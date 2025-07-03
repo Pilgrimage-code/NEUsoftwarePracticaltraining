@@ -1,5 +1,6 @@
 package com.cemh.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -8,6 +9,7 @@ import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -19,6 +21,9 @@ import java.util.Collections;
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${file.upload.path:D:/uploads}")
+    private String uploadPath;
 
     @Bean
     public CorsFilter corsFilter() {
@@ -53,7 +58,18 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 确保路径以file:开头，并且以/结尾
+        String path = uploadPath;
+        if (!path.endsWith(File.separator)) {
+            path = path + File.separator;
+        }
+        
+        // 使用file:协议访问本地文件系统
+        String filePath = "file:" + path;
+        
+        System.out.println("静态资源映射: /uploads/** -> " + filePath);
+        
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:/D:/uploads/");
+                .addResourceLocations(filePath);
     }
 }

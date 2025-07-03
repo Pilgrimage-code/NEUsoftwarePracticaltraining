@@ -14,6 +14,10 @@ import java.util.List;
  */
 public interface SysUserService {
 
+    Result<PageResult<SysUser>> getUserList(int pageNum, int pageSize, Long tenantId,
+                                            String username, String nickname, String phone,
+                                            Integer status, Long deptId);
+
     /**
      * 分页查询用户列表
      */
@@ -88,5 +92,15 @@ public interface SysUserService {
      * 获取部门下的用户
      */
     Result<List<SysUser>> getUsersByDept(Long deptId, Long tenantId);
+
+    /**
+     * 根据用户名查询用户
+     */
+    Result<SysUser> getByUsername(String username, Long tenantId);
+
+    /**
+     * 只更新用户头像
+     */
+    Result<Void> updateUserAvatar(SysUser user);
 }
 

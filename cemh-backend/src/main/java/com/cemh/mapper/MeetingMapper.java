@@ -117,5 +117,11 @@ public interface MeetingMapper extends BaseMapper<Meeting> {
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert(Meeting meeting);
 
+    /**
+     * 根据ID查询会议详情
+     * @param id 会议ID
+     * @return 会议实体
+     */
+    Meeting getById(Long id);
 }
 

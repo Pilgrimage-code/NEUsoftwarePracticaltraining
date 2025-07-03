@@ -1,30 +1,52 @@
 package com.cemh.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cemh.entity.SysDept;
 import com.cemh.mapper.SysDeptMapper;
 import com.cemh.service.SysDeptService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
-public class SysDeptServiceImpl implements SysDeptService {
-    @Autowired
-    private SysDeptMapper sysDeptMapper;
+public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements SysDeptService {
+
     @Override
-    public List<SysDept> getDeptTree(Long tenantId) {
-        List<SysDept> depts = sysDeptMapper.selectByTenantId(tenantId);
-        return buildTree(depts, 0L);
+    public List<SysDept> getByTenantId(Long tenantId) {
+        return this.list(new QueryWrapper<SysDept>()
+                .eq("tenant_id", tenantId)
+                .eq("deleted", 0));
     }
-    private List<SysDept> buildTree(List<SysDept> depts, Long parentId) {
-        List<SysDept> tree = new ArrayList<>();
-        for (SysDept dept : depts) {
-            if ((dept.getParentId() == null && parentId == 0L) || (dept.getParentId() != null && dept.getParentId().equals(parentId))) {
-                dept.setChildren(buildTree(depts, dept.getId()));
-                tree.add(dept);
-            }
+
+    @Override
+    public boolean existsByCode(Long tenantId, String deptCode) {
+        return this.count(new QueryWrapper<SysDept>()
+                .eq("tenant_id", tenantId)
+                .eq("dept_code", deptCode)
+                .eq("deleted", 0)) > 0;
+    }
+
+    @Override
+    public boolean hasChildren(Long parentId) {
+        return this.count(new QueryWrapper<SysDept>()
+                .eq("parent_id", parentId)
+                .eq("deleted", 0)) > 0;
+    }
+
+    @Override
+    @Transactional
+    public boolean removeDept(Long id) {
+        SysDept dept = this.getById(id);
+        if (dept == null) {
+            return false;
         }
-        return tree;
+
+        if (this.hasChildren(id)) {
+            throw new RuntimeException("请先删除子部门");
+        }
+
+        return this.removeById(id);
     }
-} 
+}

@@ -31,4 +31,10 @@ public interface CourseChapterMapper extends BaseMapper<CourseChapter> {
      * @return 最大排序值
      */
     Integer selectMaxOrder(@Param("courseId") Long courseId);
+    
+    /**
+     * 获取当前最大的章节ID
+     * @return 最大ID
+     */
+    Long selectMaxId();
 }

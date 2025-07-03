@@ -24,12 +24,12 @@ public class SysTenantController {
     @Operation(summary = "获取所有租户列表", description = "获取所有租户的简要信息")
     @GetMapping
     public Result<PageResult<SysTenant>> getTenantList(@RequestParam(defaultValue = "1") Integer page,
-                                                      @RequestParam(defaultValue = "10") Integer size,
-                                                      @RequestParam(required = false) String name,
-                                                      @RequestParam(required = false) String code,
-                                                      @RequestParam(required = false) Integer status,
-                                                      @RequestParam(required = false) Integer packageType,
-                                                      @RequestParam(required = false) Integer deleted) {
+                                                       @RequestParam(defaultValue = "10") Integer size,
+                                                       @RequestParam(required = false) String name,
+                                                       @RequestParam(required = false) String code,
+                                                       @RequestParam(required = false) Integer status,
+                                                       @RequestParam(required = false) Integer packageType,
+                                                       @RequestParam(required = false) Integer deleted) {
         return sysTenantService.getTenantList(page, size, name, code, status, packageType, deleted);
     }
 

@@ -1,4 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cemh.mapper.MeetingMapper">
+    <resultMap id="meetingResultMap" type="com.cemh.entity.Meeting">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="description" property="description" />
+        <result column="type" property="type" />
+        <result column="status" property="status" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="location" property="location" />
+        <result column="max_participants" property="maxParticipants" />
+        <result column="registration_deadline" property="registrationDeadline" />
+        <result column="requires_approval" property="requiresApproval" />
+        <result column="fee" property="fee" />
+        <result column="requirements" property="requirements" />
+        <result column="tags" property="tags" />
+        <result column="cover_image" property="coverImage" />
+        <result column="remark" property="remark" />
+        <result column="tenant_id" property="tenantId" />
+
+        <collection property="materials" ofType="com.cemh.entity.MeetingMaterial">
+            <id column="meetingMaterialId" property="id" />
+            <result column="meetingMaterialName" property="name" />
+            <result column="meetingMaterialMeetingId" property="meetingId" />
+            <result column="meetingMaterialUrl" property="url" />
+        </collection>
+    </resultMap>
+
+
+    <select id="getById" resultMap="meetingResultMap">
+        SELECT
+            m.id,
+            m.title,
+            m.description,
+            m.type,
+            m.status,
+            m.start_time,
+            m.end_time,
+            m.location,
+            m.max_participants,
+            m.registration_deadline,
+            m.requires_approval,
+            m.fee,
+            m.requirements,
+            m.tags,
+            m.cover_image,
+            m.remark,
+            m.tenant_id,
+            mm.id as meetingMaterialId,
+            mm.name as meetingMaterialName,
+            mm.meeting_id as meetingMaterialMeetingId,
+            mm.url as meetingMaterialUrl
+        FROM meeting m left join meeting_material mm on m.id = mm.meeting_id
+        WHERE m.id = #{id}
+    </select>
+
 </mapper>

@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -61,21 +60,21 @@ public class Meeting extends BaseEntity {
 
     @Schema(description = "会议开始时间")
     @TableField("start_time")
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @NotNull(message = "会议开始时间不能为空")
-    private OffsetDateTime startTime;
+    private LocalDateTime startTime;
 
     @Schema(description = "会议结束时间")
     @TableField("end_time")
-    @JsonFormat(pattern = "yyyy-MM-d'T'HH:mm:ss.SSSX")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @NotNull(message = "会议结束时间不能为空")
-    private OffsetDateTime endTime;
+    private LocalDateTime endTime;
 
 
     @Schema(description = "报名截至时间")
     @TableField("registration_deadline")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
-    private OffsetDateTime registrationDeadline;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime registrationDeadline;
 
     @Schema(description = "最大参会人数")
     @TableField("max_participants")
@@ -117,10 +116,6 @@ public class Meeting extends BaseEntity {
     @TableField("is_top")
     private Integer isTop;
 
-    @Schema(description = "浏览次数")
-    @TableField("view_count")
-    private Integer viewCount;
-
     @Schema(description = "会议标签")
     @TableField("tags")
     private String tags;
@@ -133,6 +128,9 @@ public class Meeting extends BaseEntity {
     @TableField("requirements")
     private String requirements;
 
+    @Schema(description = "会议资料")
+    @TableField(exist = false)
+    private List<MeetingMaterial> materials;
 
 }
 

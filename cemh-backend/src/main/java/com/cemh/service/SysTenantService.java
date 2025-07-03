@@ -4,6 +4,9 @@ import com.cemh.common.PageResult;
 import com.cemh.common.Result;
 import com.cemh.entity.SysTenant;
 
+
+import java.util.List;
+
 public interface SysTenantService {
     Result<PageResult<SysTenant>> getTenantList(Integer page, Integer size, String name, String code, Integer status, Integer packageType, Integer deleted);
     Result<Void> createTenant(SysTenant tenant);
@@ -30,6 +33,7 @@ public interface SysTenantService {
      * 启用指定租户，将status设为1
      */
     Result<Void> enableTenant(Long tenantId);
-}
 
+    Object getById(Long tenantId);
+}
 

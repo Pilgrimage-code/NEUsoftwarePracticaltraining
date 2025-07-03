@@ -23,6 +23,7 @@ public interface CourseMapper extends BaseMapper<Course> {
      * @param courseAuthor 课程作者
      * @param status 课程状态
      * @param categoryId 分类ID
+     * @param remark 备注（用于审核状态）
      * @return 分页结果
      */
     IPage<Course> selectCoursePage(Page<Course> page, 
@@ -31,7 +32,8 @@ public interface CourseMapper extends BaseMapper<Course> {
                                     @Param("courseOrder") Integer courseOrder,
                                     @Param("courseAuthor") String courseAuthor,
                                     @Param("status") Integer status,
-                                    @Param("categoryId") Long categoryId);
+                                    @Param("categoryId") Long categoryId,
+                                    @Param("remark") String remark);
     
     /**
      * 获取课程详情
@@ -79,4 +81,10 @@ public interface CourseMapper extends BaseMapper<Course> {
     List<Course> selectCourseExport(@Param("tenantId") Long tenantId,
                                      @Param("courseName") String courseName,
                                      @Param("courseOrder") Integer courseOrder);
+                                     
+    /**
+     * 获取当前最大的课程ID
+     * @return 最大ID
+     */
+    Long selectMaxId();
 }

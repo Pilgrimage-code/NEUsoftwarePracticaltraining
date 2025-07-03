@@ -1,8 +1,8 @@
 package com.cemh.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cemh.common.PageResult;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cemh.common.Result;
 import com.cemh.entity.SysTenant;
 import com.cemh.mapper.SysTenantMapper;
@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+
 public class SysTenantServiceImpl implements SysTenantService {
+
     @Autowired
     private SysTenantMapper sysTenantMapper;
 
@@ -35,21 +37,21 @@ public class SysTenantServiceImpl implements SysTenantService {
             // 检查租户编码是否已存在（只检查未删除的记录）
             QueryWrapper<SysTenant> wrapper = new QueryWrapper<>();
             wrapper.eq("tenant_code", tenant.getTenantCode())
-                   .eq("deleted", 0);
+                    .eq("deleted", 0);
             SysTenant existingTenant = sysTenantMapper.selectOne(wrapper);
             if (existingTenant != null) {
                 return Result.error("租户编码已存在，请使用其他编码");
             }
-            
+
             // 检查租户名称是否已存在（只检查未删除的记录）
             wrapper = new QueryWrapper<>();
             wrapper.eq("tenant_name", tenant.getTenantName())
-                   .eq("deleted", 0);
+                    .eq("deleted", 0);
             existingTenant = sysTenantMapper.selectOne(wrapper);
             if (existingTenant != null) {
                 return Result.error("租户名称已存在，请使用其他名称");
             }
-            
+
             sysTenantMapper.insert(tenant);
             return Result.success();
         } catch (Exception e) {
@@ -64,23 +66,23 @@ public class SysTenantServiceImpl implements SysTenantService {
             // 检查租户编码是否已被其他租户使用（只检查未删除的记录）
             QueryWrapper<SysTenant> wrapper = new QueryWrapper<>();
             wrapper.eq("tenant_code", tenant.getTenantCode())
-                   .ne("id", tenant.getId())
-                   .eq("deleted", 0);
+                    .ne("id", tenant.getId())
+                    .eq("deleted", 0);
             SysTenant existingTenant = sysTenantMapper.selectOne(wrapper);
             if (existingTenant != null) {
                 return Result.error("租户编码已存在，请使用其他编码");
             }
-            
+
             // 检查租户名称是否已被其他租户使用（只检查未删除的记录）
             wrapper = new QueryWrapper<>();
             wrapper.eq("tenant_name", tenant.getTenantName())
-                   .ne("id", tenant.getId())
-                   .eq("deleted", 0);
+                    .ne("id", tenant.getId())
+                    .eq("deleted", 0);
             existingTenant = sysTenantMapper.selectOne(wrapper);
             if (existingTenant != null) {
                 return Result.error("租户名称已存在，请使用其他名称");
             }
-            
+
             sysTenantMapper.updateById(tenant);
             return Result.success();
         } catch (Exception e) {
@@ -97,7 +99,7 @@ public class SysTenantServiceImpl implements SysTenantService {
             if (tenant == null) {
                 return Result.error("租户不存在");
             }
-            
+
             // 执行逻辑删除
             sysTenantMapper.deleteById(id);
             return Result.success();
@@ -190,6 +192,10 @@ public class SysTenantServiceImpl implements SysTenantService {
             return Result.error("启用失败：" + e.getMessage());
         }
     }
-}
 
+    @Override
+    public Object getById(Long tenantId) {
+        return null;
+    }
+}
 

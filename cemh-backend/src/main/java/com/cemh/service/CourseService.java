@@ -133,4 +133,15 @@ public interface CourseService {
      * 更新学习进度
      */
     Result<Void> updateLearningProgress(Long courseId, Long chapterId, Long userId, Integer progress);
+    
+    /**
+     * 审核课程
+     * @param id 课程ID
+     * @param status 审核状态（0：通过，2：拒绝）
+     * @param reviewComment 审核备注
+     * @param tenantId 租户ID
+     * @param userId 用户ID
+     * @return 操作结果
+     */
+    Result<Void> reviewCourse(Long id, Integer status, String reviewComment, Long tenantId, Long userId);
 } 

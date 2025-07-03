@@ -168,8 +168,8 @@
               <el-form-item label="会议材料">
                 <el-upload
                   class="upload-demo"
-                  action="/api/upload"
-                  :file-list="meetingForm.attachments"
+                  action="/api/api/upload/document"
+                  :file-list="meetingForm.materials"
                   :on-success="handleFileSuccess"
                   :on-remove="handleFileRemove"
                   multiple
@@ -189,13 +189,13 @@
               <el-form-item label="会议封面">
                 <el-upload
                   class="cover-uploader"
-                  action="/api/upload"
+                  action="/api/api/upload/image"
                   :show-file-list="false"
                   :on-success="handleCoverSuccess"
                   :before-upload="beforeCoverUpload"
                 >
                   <img v-if="meetingForm.coverImage" :src="meetingForm.coverImage" class="cover-image" />
-                  <i v-else class="el-icon-plus cover-uploader-icon"></i>
+                  <el-icon v-else class="el-icon-plus cover-uploader-icon"></el-icon>
                 </el-upload>
               </el-form-item>
               
@@ -213,7 +213,7 @@
           <!-- 表单操作按钮 -->
           <div class="form-actions">
             <el-button @click="handleCancel">取消</el-button>
-            <el-button @click="handleSaveDraft" :loading="saving">保存草稿</el-button>
+            <!-- <el-button @click="handleSaveDraft" :loading="saving">保存草稿</el-button> -->
             <el-button type="primary" @click="handleSubmit" :loading="saving">
               {{ isEdit ? '更新会议' : '发布会议' }}
             </el-button>
@@ -229,6 +229,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {meetingApi} from '@/api/meeting'
 import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 
 export default {
   name: 'MeetingForm',
@@ -260,7 +261,7 @@ export default {
       fee: 0,
       requirements: '',
       tags: '',
-      attachments: [],
+      materials: [],
       coverImage: '',
       remark: '',
       isTop: 0
@@ -304,21 +305,38 @@ export default {
         }
         const meetingData = mockData.data;
 
+        // 定义一个辅助函数处理时间格式
+        const parseDate = (dateString) => {
+          if (!dateString) return '';
+          console.log('原始时间字符串:', dateString);
+          // 修正日期部分，仅当日为一位数时补零
+          let correctedDateString = dateString.replace(/(\d{4})-(\d{1,2})-(\d{1})(?=T|$)/, (_, year, month, day) => {
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          });
+          // 正则匹配时区部分，补全时区格式为 ±HH:MM
+          let standardDateString = correctedDateString.replace(/([+-])(\d{2})(\d{2})?$/, (_, sign, hours, minutes = '00') => {
+            return `${sign}${hours}:${minutes}`;
+          });
+          const date = new Date(standardDateString);
+          return isNaN(date.getTime()) ? '' : date;
+        };
+
         // 手动赋值，处理数据类型
         meetingForm.title = meetingData.title || ''
         meetingForm.description = meetingData.description || ''
         meetingForm.type = String(meetingData.type) || '' // 确保类型为字符串
         meetingForm.status = String(meetingData.status) || '' // 确保状态为字符串
-        meetingForm.startTime = meetingData.startTime ? new Date(meetingData.startTime) : ''
-        meetingForm.endTime = meetingData.endTime ? new Date(meetingData.endTime) : ''
+        // Use the parseDate function to handle the startTime
+        meetingForm.startTime = parseDate(meetingData.startTime) || ''
+        meetingForm.endTime = parseDate(meetingData.endTime) || ''
         meetingForm.location = meetingData.location || ''
         meetingForm.maxParticipants = Number(meetingData.maxParticipants) || 0
-        meetingForm.registrationDeadline = meetingData.registrationDeadline ? new Date(meetingData.registrationDeadline) : ''
+        meetingForm.registrationDeadline = parseDate(meetingData.registrationDeadline) || ''
         meetingForm.requiresApproval = Boolean(meetingData.requiresApproval) || false
         meetingForm.fee = Number(meetingData.fee) || 0
         meetingForm.requirements = meetingData.requirements || ''
         meetingForm.tags = meetingData.tags || ''
-        meetingForm.attachments = meetingData.attachments || []
+        meetingForm.materials = meetingData.materials || []
         meetingForm.coverImage = meetingData.coverImage || ''
         meetingForm.remark = meetingData.remark || ''
 
@@ -334,19 +352,23 @@ export default {
     
     // 文件上传成功
     const handleFileSuccess = (response, file, fileList) => {
-      meetingForm.attachments = fileList
+      meetingForm.materials = fileList
       ElMessage.success('文件上传成功')
     }
     
     // 文件移除
     const handleFileRemove = (file, fileList) => {
-      meetingForm.attachments = fileList
+      meetingForm.materials = fileList
     }
     
     // 封面上传成功
-    const handleCoverSuccess = (response, file) => {
-      meetingForm.coverImage = URL.createObjectURL(file.raw)
-      ElMessage.success('封面上传成功')
+    const handleCoverSuccess = (response) => {
+      if (response.code === 200) {
+        meetingForm.coverImage = response.data.url
+        ElMessage.success('封面上传成功')
+      } else {
+        ElMessage.error('封面上传失败')
+      }
     }
     
     // 封面上传前验证
@@ -363,20 +385,20 @@ export default {
       return isJPG && isLt2M
     }
     
-    // 保存草稿
-    const handleSaveDraft = async () => {
-      saving.value = true
-      try {
-        meetingForm.status = 1
-        // 模拟API调用
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        ElMessage.success('草稿保存成功')
-      } catch (error) {
-        ElMessage.error('保存失败')
-      } finally {
-        saving.value = false
-      }
-    }
+    // // 保存草稿
+    // const handleSaveDraft = async () => {
+    //   saving.value = true
+    //   try {
+    //     meetingForm.status = 1
+    //     // 模拟API调用
+    //     await new Promise(resolve => setTimeout(resolve, 1000))
+    //     ElMessage.success('草稿保存成功')
+    //   } catch (error) {
+    //     ElMessage.error('保存失败')
+    //   } finally {
+    //     saving.value = false
+    //   }
+    // }
     
     // 提交表单
     const handleSubmit = async () => {
@@ -390,7 +412,7 @@ export default {
           meetingForm.id = route.params.id
          result = await meetingApi.updateMeeting(meetingForm)
         } else {
-          esult = await meetingApi.createMeeting(meetingForm)
+          result = await meetingApi.createMeeting(meetingForm)
         }
         if(result.code === 200){
           ElMessage.success(isEdit.value ? '会议更新成功' : '会议创建成功')
@@ -416,15 +438,10 @@ export default {
     
     // 组件挂载时的初始化
     onMounted(() => {
-      console.log('路由名称:', route.name);
-      console.log('路由参数:', route.params);
+
       if (isEdit.value && route.params.id) {
         getMeetingDetail(route.params.id)
-      } else {
-        console.log('未进入编辑模式或缺少 ID 参数');
-        loading.value = false
-      }
-
+      } 
     })
     
     return {
@@ -438,7 +455,7 @@ export default {
       handleFileRemove,
       handleCoverSuccess,
       beforeCoverUpload,
-      handleSaveDraft,
+      // handleSaveDraft,
       handleSubmit,
       handleCancel
     }
@@ -521,7 +538,12 @@ export default {
 
 .cover-uploader-icon {
   font-size: 28px;
-  color: #8c939d;
+    color: #8c939d;
+    width: 78px;
+    height: 78px;
+    text-align: center;
+    /* 添加灰色的虚线边框 */
+    border: 1px dashed var(--el-border-color);
 }
 
 .cover-image {
