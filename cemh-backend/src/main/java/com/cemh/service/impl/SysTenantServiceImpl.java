@@ -27,5 +27,3 @@ public class SysTenantServiceImpl extends ServiceImpl<SysTenantMapper, SysTenant
         return this.lambdaQuery().eq(SysTenant::getTenantCode, tenantCode).count() > 0;
     }
 }
-
-

@@ -75,6 +75,7 @@
         </div>
         <div class="tree-content">
           <el-tree
+            v-loading="treeLoading"
             :data="treeData"
             :props="treeProps"
             node-key="id"
@@ -97,11 +98,11 @@
         <div class="content-header">
           <h2 v-if="current.type === 'company'">
             <i class="el-icon-office-building"></i>
-            {{ current.data.name }} — 部门管理
+            {{ current.data.tenantName }} — 部门管理
           </h2>
           <h2 v-else-if="current.type === 'department'">
             <i class="el-icon-s-management"></i>
-            {{ current.data.name }} 部门详情
+            {{ current.data.deptName }} 部门详情
           </h2>
           <h2 v-else-if="isSearchResult">
             <i class="el-icon-search"></i>
@@ -160,24 +161,29 @@
             <div class="dept-list-header">
               <div>
                 <h3>部门列表</h3>
-                <p class="page-description">共 {{ current.data.departments.length }} 个部门</p>
+                <p class="page-description">共 {{ current.data.departments ? current.data.departments.length : 0 }} 个部门</p>
               </div>
             </div>
             
-            <el-table :data="current.data.departments" class="dept-table">
-              <el-table-column prop="name" label="部门名称" width="220">
+            <el-table 
+              v-loading="tableLoading"
+              :data="current.data.departments" 
+              class="dept-table"
+              v-if="current.data.departments"
+            >
+              <el-table-column prop="deptName" label="部门名称" width="220">
                 <template #default="scope">
                   <div style="display: flex; align-items: center;">
                     <i class="el-icon-s-management" style="color: #0d9e0d; margin-right: 8px;"></i>
-                    <span>{{ scope.row.name }}</span>
+                    <span>{{ scope.row.deptName }}</span>
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="leader" label="部门负责人" width="150"></el-table-column>
+              <el-table-column prop="deptCode" label="部门编码" width="180"></el-table-column>
               <el-table-column prop="status" label="状态" width="120">
                 <template #default="scope">
-                  <el-tag :type="scope.row.status === '正常' ? 'success' : 'danger'">
-                    {{ scope.row.status }}
+                  <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
+                    {{ scope.row.status === 1 ? '正常' : '停用' }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -207,10 +213,10 @@
                 <div class="dept-info">
                   <div class="dept-name">
                     <i class="el-icon-s-management"></i>
-                    <h3>{{ current.data.name }}</h3>
+                    <h3>{{ current.data.deptName }}</h3>
                   </div>
-                  <el-tag :type="current.data.status === '正常' ? 'success' : 'danger'" class="status-tag">
-                    {{ current.data.status }}
+                  <el-tag :type="current.data.status === 1 ? 'success' : 'danger'" class="status-tag">
+                    {{ current.data.status === 1 ? '正常' : '停用' }}
                   </el-tag>
                 </div>
                 <p class="dept-path">
@@ -226,8 +232,8 @@
                   <h4 class="section-title">基本信息</h4>
                   <div class="detail-grid">
                     <div class="detail-item">
-                      <span class="detail-label">部门负责人：</span>
-                      <span class="detail-value">{{ current.data.leader || '未设置' }}</span>
+                      <span class="detail-label">部门编码：</span>
+                      <span class="detail-value">{{ current.data.deptCode }}</span>
                     </div>
                     <div class="detail-item">
                       <span class="detail-label">联系电话：</span>
@@ -248,6 +254,10 @@
                       </span>
                     </div>
                     <div class="detail-item">
+                      <span class="detail-label">地址：</span>
+                      <span class="detail-value">{{ current.data.address || '未设置' }}</span>
+                    </div>
+                    <div class="detail-item">
                       <span class="detail-label">创建时间：</span>
                       <span class="detail-value">{{ current.data.createTime }}</span>
                     </div>
@@ -257,7 +267,7 @@
                 <div class="detail-section">
                   <h4 class="section-title">部门描述</h4>
                   <p class="dept-description">
-                    {{ current.data.description || '暂无部门描述信息' }}
+                    {{ current.data.remark || '暂无部门描述信息' }}
                   </p>
                 </div>
               </div>
@@ -282,19 +292,19 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="name" label="部门名称" width="220">
+              <el-table-column prop="deptName" label="部门名称" width="220">
                 <template #default="scope">
                   <div style="display: flex; align-items: center;">
                     <i class="el-icon-s-management" style="color: #0d9e0d; margin-right: 8px;"></i>
-                    <span>{{ scope.row.name }}</span>
+                    <span>{{ scope.row.deptName }}</span>
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="leader" label="部门负责人" width="150"></el-table-column>
+              <el-table-column prop="deptCode" label="部门编码" width="180"></el-table-column>
               <el-table-column prop="status" label="状态" width="120">
                 <template #default="scope">
-                  <el-tag :type="scope.row.status === '正常' ? 'success' : 'danger'">
-                    {{ scope.row.status }}
+                  <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
+                    {{ scope.row.status === 1 ? '正常' : '停用' }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -320,7 +330,7 @@
       </div>
     </div>
     
-    <!-- 部门弹窗（新增/修改）- 优化布局 -->
+    <!-- 部门弹窗（新增/修改） -->
     <el-dialog 
       :title="deptDialog.title" 
       v-model="deptDialog.visible"
@@ -329,21 +339,24 @@
       custom-class="dept-dialog"
     >
       <el-form :model="deptDialog.form" label-width="100px" :rules="deptRules" ref="deptForm">
+        <!-- 添加隐藏的parentId字段 -->
+        <el-input type="hidden" v-model="deptDialog.form.parentId"></el-input>
+        
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="部门名称" prop="name">
+            <el-form-item label="部门编码" prop="deptCode">
               <el-input 
-                v-model="deptDialog.form.name" 
-                placeholder="请输入部门名称"
+                v-model="deptDialog.form.deptCode" 
+                placeholder="请输入部门编码"
                 size="medium"
               ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="负责人">
+            <el-form-item label="部门名称" prop="deptName">
               <el-input 
-                v-model="deptDialog.form.leader" 
-                placeholder="请输入负责人姓名"
+                v-model="deptDialog.form.deptName" 
+                placeholder="请输入部门名称"
                 size="medium"
               ></el-input>
             </el-form-item>
@@ -371,18 +384,34 @@
           </el-col>
         </el-row>
         
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="deptDialog.form.status">
-            <el-radio label="正常">正常</el-radio>
-            <el-radio label="停用">停用</el-radio>
-          </el-radio-group>
-        </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="地址">
+              <el-input 
+                v-model="deptDialog.form.address" 
+                placeholder="请输入部门地址"
+                size="medium"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
         
-        <el-form-item label="部门描述">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="状态" prop="status">
+              <el-radio-group v-model="deptDialog.form.status">
+                <el-radio :label="1">正常</el-radio>
+                <el-radio :label="0">停用</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
+        <el-form-item label="描述">
           <el-input
             type="textarea"
             :rows="3"
-            v-model="deptDialog.form.description"
+            v-model="deptDialog.form.remark"
             placeholder="请输入部门描述"
           ></el-input>
         </el-form-item>
@@ -397,6 +426,13 @@
 
 <script>
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { 
+  getTenants, 
+  getDeptsByTenant,
+  createDept,
+  updateDept,
+  deleteDept
+} from '@/api/dept';
 
 export default {
   name: 'DepartmentManagement',
@@ -404,7 +440,8 @@ export default {
     return {
       // 表单验证规则
       deptRules: {
-        name: [{ required: true, message: '请输入部门名称', trigger: 'blur' }],
+        deptCode: [{ required: true, message: '请输入部门编码', trigger: 'blur' }],
+        deptName: [{ required: true, message: '请输入部门名称', trigger: 'blur' }],
         status: [{ required: true, message: '请选择状态', trigger: 'change' }]
       },
       
@@ -425,7 +462,17 @@ export default {
       deptDialog: {
         visible: false, 
         title: "", 
-        form: {}, 
+        form: {
+          deptCode: '',
+          deptName: '',
+          phone: '',
+          email: '',
+          address: '',
+          status: 1, // 默认正常状态 (1)
+          remark: '',
+          parentId: null,
+          tenantId: null
+        }, 
         isEdit: false
       },
       
@@ -433,101 +480,26 @@ export default {
       isSearchResult: false,
       searchResultList: [],
       
-      // 模拟数据 - 3个公司，每个公司2-3个部门
-      companies: [
-        {
-          id: 1, 
-          name: "科技先锋有限公司", 
-          departments: [
-            {
-              id: 11, 
-              name: "技术研发部", 
-              leader: "张明", 
-              phone: "13800001111", 
-              email: "tech@example.com",
-              status: "正常", 
-              createTime: "2025-01-10", 
-              description: "负责公司核心技术研发与创新，推动技术升级和产品迭代"
-            },
-            {
-              id:12, 
-              name:"市场拓展部", 
-              leader:"刘洋", 
-              phone:"13900002222", 
-              email:"market@example.com",
-              status:"正常", 
-              createTime:"2025-02-15", 
-              description: "负责市场调研、品牌推广及业务拓展，制定营销策略"
-            }
-          ]
-        },
-        {
-          id:2, 
-          name:"创新教育集团", 
-          departments:[
-            {
-              id:21, 
-              name:"教学管理部", 
-              leader:"周华", 
-              phone:"13800003333", 
-              email:"teach@example.com",
-              status:"正常", 
-              createTime:"2025-03-20", 
-              description: "负责课程设计、教学质量管理及教师培训工作"
-            },
-            {
-              id:22, 
-              name:"运营支持部", 
-              leader:"钱琳", 
-              phone:"13800004444", 
-              email:"support@example.com",
-              status:"停用", 
-              createTime:"2025-04-05", 
-              description: "负责日常运营管理、客户服务及后勤支持工作"
-            }
-          ]
-        },
-        {
-          id:3, 
-          name:"未来制造集团", 
-          departments:[
-            {
-              id:31, 
-              name:"生产管理部", 
-              leader:"朱军", 
-              phone:"13800005555", 
-              email:"production@example.com",
-              status:"正常", 
-              createTime:"2025-05-12", 
-              description: "负责生产计划制定、生产流程优化及产品质量控制"
-            },
-            {
-              id:32, 
-              name:"质量控制部", 
-              leader:"陈明", 
-              phone:"13700006666", 
-              email:"quality@example.com",
-              status:"正常", 
-              createTime:"2025-06-18", 
-              description: "负责原材料检验、生产过程监控及成品质量检测"
-            }
-          ]
-        }
-      ]
+      // 企业列表
+      companies: [],
+      
+      // 加载状态
+      treeLoading: false,
+      tableLoading: false
     };
   },
   computed: {
-    // 树形数据
+    // 树形数据 - 基于后端数据构建
     treeData() {
       return this.companies.map(c => ({
         id: c.id, 
-        label: c.name, 
-        children: c.departments.map(d => ({
+        label: c.tenantName, 
+        children: c.departments?.map(d => ({
           id: d.id, 
-          label: d.name, 
+          label: d.deptName, 
           type: "department", 
           data: d
-        })), 
+        })) || [], 
         type: "company", 
         data: c
       }));
@@ -541,9 +513,63 @@ export default {
       };
     }
   },
+  created() {
+    this.loadTenants();
+  },
   methods: {
+    // 添加方法：获取当前公司的根部门ID
+    getRootDeptId(tenantId) {
+      const company = this.companies.find(c => c.id === tenantId);
+      if (company && company.departments) {
+        const rootDept = company.departments.find(d => d.parentId === null || d.parentId === 0);
+        return rootDept ? rootDept.id : null;
+      }
+      return null;
+    },
+    
+    // 加载企业数据
+    async loadTenants() {
+      this.treeLoading = true;
+      try {
+        const res = await getTenants();
+        if (res.code === 200) {
+          this.companies = res.data;
+          
+          // 如果企业数据中有部门信息，直接使用
+          // 否则加载第一个企业的部门
+          if (this.companies.length > 0 && !this.companies[0].departments) {
+            await this.loadDeptsForTenant(this.companies[0].id);
+          }
+        }
+      } catch (error) {
+        console.error("加载企业数据失败:", error);
+        ElMessage.error("加载企业数据失败");
+      } finally {
+        this.treeLoading = false;
+      }
+    },
+    
+    // 加载指定企业的部门
+    async loadDeptsForTenant(tenantId) {
+      this.tableLoading = true;
+      try {
+        const res = await getDeptsByTenant(tenantId);
+        if (res.code === 200) {
+          const tenant = this.companies.find(c => c.id === tenantId);
+          if (tenant) {
+            tenant.departments = res.data;
+          }
+        }
+      } catch (error) {
+        console.error("加载部门数据失败:", error);
+        ElMessage.error("加载部门数据失败");
+      } finally {
+        this.tableLoading = false;
+      }
+    },
+    
     // 搜索部门
-    handleSearch() {
+    async handleSearch() {
       const { company, department, deptStatus } = this.filters;
       
       // 检查搜索条件是否全部为空
@@ -554,33 +580,50 @@ export default {
       
       this.searchResultList = [];
       
-      this.companies.forEach(comp => {
-        // 检查公司名称匹配
-        if (company && !comp.name.toLowerCase().includes(company.toLowerCase())) return;
+      try {
+        // 重新加载所有企业及其部门（如果尚未加载）
+        if (this.companies.length === 0) {
+          await this.loadTenants();
+        }
         
-        comp.departments.forEach(dept => {
-          // 检查部门名称匹配
-          if (department && !dept.name.toLowerCase().includes(department.toLowerCase())) return;
+        // 遍历企业，筛选部门
+        this.companies.forEach(comp => {
+          // 检查公司名称匹配
+          if (company && !comp.tenantName.toLowerCase().includes(company.toLowerCase())) return;
           
-          // 检查部门状态匹配
-          if (deptStatus && dept.status !== deptStatus) return;
+          // 如果该企业的部门尚未加载，则先加载
+          if (!comp.departments) return;
           
-          // 添加匹配的部门到搜索结果
-          this.searchResultList.push({
-            ...dept,
-            companyName: comp.name,
-            companyId: comp.id
+          comp.departments.forEach(dept => {
+            // 检查部门名称匹配
+            if (department && !dept.deptName.toLowerCase().includes(department.toLowerCase())) return;
+            
+            // 检查部门状态匹配
+            if (deptStatus) {
+              const statusText = dept.status === 1 ? '正常' : '停用';
+              if (statusText !== deptStatus) return;
+            }
+            
+            // 添加匹配的部门到搜索结果
+            this.searchResultList.push({
+              ...dept,
+              companyName: comp.tenantName,
+              companyId: comp.id
+            });
           });
         });
-      });
-      
-      if (this.searchResultList.length > 0) {
-        this.isSearchResult = true;
-        this.current.type = "";
-        this.current.data = null;
-        ElMessage.success(`找到 ${this.searchResultList.length} 个部门`);
-      } else {
-        ElMessage.warning("未找到匹配的部门");
+        
+        if (this.searchResultList.length > 0) {
+          this.isSearchResult = true;
+          this.current.type = "";
+          this.current.data = null;
+          ElMessage.success(`找到 ${this.searchResultList.length} 个部门`);
+        } else {
+          ElMessage.warning("未找到匹配的部门");
+        }
+      } catch (error) {
+        console.error("搜索失败:", error);
+        ElMessage.error("搜索失败");
       }
     },
     
@@ -606,7 +649,7 @@ export default {
     viewDeptDetail(dept) {
       const company = this.companies.find(c => c.id === dept.companyId);
       if (company) {
-        const department = company.departments.find(d => d.id === dept.id);
+        const department = company.departments?.find(d => d.id === dept.id);
         if (department) {
           this.current.type = "department";
           this.current.data = department;
@@ -616,10 +659,15 @@ export default {
     },
     
     // 处理树节点点击
-    handleTreeNodeClick(node) {
+    async handleTreeNodeClick(node) {
       if (node.type === "company") {
         this.current.type = "company";
         this.current.data = node.data;
+        
+        // 如果部门数据未加载，则加载
+        if (!node.data.departments) {
+          await this.loadDeptsForTenant(node.data.id);
+        }
       } else if (node.type === "department") {
         this.current.type = "department";
         this.current.data = node.data;
@@ -627,30 +675,42 @@ export default {
       this.isSearchResult = false;
     },
     
-    // 打开部门对话框
+    // 打开部门对话框 - 关键修复
     openDeptDialog(dept = null) {
       this.deptDialog.isEdit = !!dept;
       this.deptDialog.title = dept ? "修改部门信息" : "添加新部门";
-      this.deptDialog.visible = true; // 确保对话框可见
+      this.deptDialog.visible = true;
       
       if (dept) {
-        // 编辑：复制当前部门数据
-        this.deptDialog.form = { ...dept };
-      } else {
-        // 新增：初始化表单，默认状态为"正常"
         this.deptDialog.form = { 
-          id: Date.now(), // 生成唯一ID
-          name: "", 
-          leader: "", 
+          id: dept.id,
+          deptCode: dept.deptCode,
+          deptName: dept.deptName, 
+          phone: dept.phone, 
+          email: dept.email, 
+          address: dept.address,
+          status: dept.status,
+          remark: dept.remark,
+          tenantId: dept.tenantId,
+          parentId: dept.parentId  // 保留原始parentId
+        };
+      } else {
+        // 关键修复：获取当前公司的根部门ID
+        const rootDeptId = this.getRootDeptId(this.current.data.id);
+        
+        this.deptDialog.form = { 
+          deptCode: '',
+          deptName: "", 
           phone: "", 
           email: "", 
-          status: "正常", 
-          createTime: new Date().toISOString().slice(0, 10), // 当前日期
-          description: ""
+          address: "",
+          status: 1,
+          remark: "",
+          tenantId: this.current.data.id,
+          parentId: rootDeptId  // 设置为根部门ID
         };
       }
       
-      // 重置表单验证状态
       this.$nextTick(() => {
         if (this.$refs.deptForm) {
           this.$refs.deptForm.clearValidate();
@@ -658,91 +718,78 @@ export default {
       });
     },
     
-    // 保存部门信息
-    saveDept() {
-      this.$refs.deptForm.validate(valid => {
+    async saveDept() {
+      this.$refs.deptForm.validate(async valid => {
         if (valid) {
-          const formData = this.deptDialog.form;
-          
-          if (this.deptDialog.isEdit) {
-            // 更新部门信息
-            const company = this.companies.find(c => 
-              c.departments.some(d => d.id === formData.id)
-            );
-            
-            if (company) {
-              const deptIndex = company.departments.findIndex(d => d.id === formData.id);
-              if (deptIndex !== -1) {
-                // 更新部门信息
-                company.departments.splice(deptIndex, 1, formData);
-                ElMessage.success("部门信息更新成功");
-                
-                // 更新当前视图
-                if (this.current.data && this.current.data.id === formData.id) {
-                  this.current.data = formData;
-                }
-              }
-            }
-          } else {
-            // 添加新部门：添加到当前选中的公司
-            if (this.current.type === 'company') {
-              const company = this.current.data;
-              // 添加到公司部门列表
-              company.departments.push(formData);
-              ElMessage.success("部门添加成功");
+          try {
+            let result;
+            if (this.deptDialog.isEdit) {
+              result = await updateDept(this.deptDialog.form.id, this.deptDialog.form);
             } else {
-              ElMessage.error("请先选择公司");
+              result = await createDept(this.deptDialog.form);
+            }
+            
+            if (result.code === 200) {
+              ElMessage.success(this.deptDialog.isEdit ? "部门信息更新成功" : "部门添加成功");
+              await this.loadDeptsForTenant(this.deptDialog.form.tenantId);
+              this.deptDialog.visible = false;
+            } else {
+              ElMessage.error(result.message || "操作失败");
+            }
+          } catch (error) {
+            console.error("保存部门失败:", error);
+            if (error.response && error.response.data) {
+              ElMessage.error(error.response.data.message || "操作失败");
+            } else {
+              ElMessage.error("操作失败，请检查数据格式");
             }
           }
-          
-          this.deptDialog.visible = false;
         }
       });
     },
     
     // 删除部门
-    deleteDept(dept) {
-      ElMessageBox.confirm(
-        `确定要删除 "${dept.name}" 部门吗？此操作不可恢复。`,
-        "删除确认",
-        {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        }
-      ).then(() => {
-        const company = this.companies.find(c => 
-          c.departments.some(d => d.id === dept.id)
+    async deleteDept(dept) {
+      try {
+        await ElMessageBox.confirm(
+          `确定要删除 "${dept.deptName}" 部门吗？此操作不可恢复。`,
+          "删除确认",
+          {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            type: "warning"
+          }
         );
         
-        if (company) {
-          // 删除部门
-          company.departments = company.departments.filter(d => d.id !== dept.id);
+        // 正确传递部门ID
+        const result = await deleteDept(dept.id);
+        if (result.code === 200) {
           ElMessage.success("部门已删除");
-          
-          // 如果当前正在查看被删除的部门
+          // 刷新部门数据
+          await this.loadDeptsForTenant(dept.tenantId);
+          // 如果当前正在查看被删除的部门，则清空当前视图
           if (this.current.type === "department" && this.current.data.id === dept.id) {
             this.current.type = "";
             this.current.data = null;
           }
-          // 如果当前正在查看被删除部门所在的公司，则需要更新公司视图
-          else if (this.current.type === "company" && this.current.data.id === company.id) {
-            this.current.data = { ...company };
-          }
+        } else {
+          ElMessage.error(result.message || "删除失败");
         }
-      }).catch(() => {});
+      } catch (error) {
+        // 用户取消删除
+      }
     },
     
     // 获取公司名称
     getCompanyName(dept) {
-      const company = this.companies.find(c => 
-        c.departments.some(d => d.id === dept.id)
-      );
-      return company ? company.name : "未知公司";
+      const company = this.companies.find(c => c.id === dept.tenantId);
+      return company ? company.tenantName : "未知公司";
     }
   }
 };
 </script>
+
+
 
 <style scoped>
 * {
