@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cemh.mapper.SysUserMapper">
+
+    <!-- 根据用户名和租户代码查询用户 -->
+    <select id="selectByUsername" resultType="com.cemh.entity.SysUser">
+        SELECT * FROM sys_user
+        WHERE username = #{username} 
+        AND tenant_id = (
+            SELECT id FROM sys_tenant WHERE tenant_code = #{tenantCode} AND deleted = 0
+        )
+        AND deleted = 0
+        LIMIT 1
+    </select>
+    
+    <!-- 分页查询用户列表 -->
+    <select id="selectUserList" resultType="com.cemh.entity.SysUser">
+        SELECT u.*, d.dept_name as deptName
+        FROM sys_user u
+        LEFT JOIN sys_dept d ON u.dept_id = d.id AND d.deleted = 0
+        <where>
+            u.deleted = 0
+            <if test="tenantId != null">
+                AND u.tenant_id = #{tenantId}
+            </if>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="nickname != null and nickname != ''">
+                AND u.nickname LIKE CONCAT('%', #{nickname}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND u.phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="status != null">
+                AND u.status = #{status}
+            </if>
+            <if test="deptId != null">
+                AND u.dept_id = #{deptId}
+            </if>
+        </where>
+        ORDER BY u.create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 统计用户数量 -->
+    <select id="countUsers" resultType="java.lang.Integer">
+        SELECT COUNT(*) 
+        FROM sys_user u
+        LEFT JOIN sys_dept d ON u.dept_id = d.id AND d.deleted = 0
+        <where>
+            u.deleted = 0
+            <if test="tenantId != null">
+                AND u.tenant_id = #{tenantId}
+            </if>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="nickname != null and nickname != ''">
+                AND u.nickname LIKE CONCAT('%', #{nickname}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND u.phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="status != null">
+                AND u.status = #{status}
+            </if>
+            <if test="deptId != null">
+                AND u.dept_id = #{deptId}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 查询用户角色 -->
+    <select id="selectUserRoles" resultType="java.lang.Long">
+        SELECT role_id
+        FROM sys_user_role
+        WHERE user_id = #{userId}
+        AND deleted = 0
+    </select>
+    
+    <!-- 删除用户角色关联 -->
+    <update id="deleteUserRoles">
+        UPDATE sys_user_role SET deleted = 1
+        WHERE user_id = #{userId}
+    </update>
+    
+    <!-- 插入用户角色关联 -->
+    <insert id="insertUserRoles">
+        INSERT INTO sys_user_role (user_id, role_id, create_time, update_time, deleted)
+        VALUES
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userId}, #{roleId}, now(), now(), 0)
+        </foreach>
+    </insert>
+    
+    <!-- 根据部门查询用户 -->
+    <select id="selectUsersByDept" resultType="com.cemh.entity.SysUser">
+        SELECT * FROM sys_user
+        WHERE dept_id = #{deptId}
+        AND deleted = 0
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 根据用户名统计数量（用于检查重复） -->
+    <select id="countByUsername" resultType="int">
+        SELECT COUNT(*) FROM sys_user
+        WHERE username = #{username}
+        AND tenant_id = #{tenantId}
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+        AND deleted = 0
+    </select>
+    
+    <!-- 根据手机号统计数量（用于检查重复） -->
+    <select id="countByPhone" resultType="int">
+        SELECT COUNT(*) FROM sys_user
+        WHERE phone = #{phone}
+        AND tenant_id = #{tenantId}
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+        AND deleted = 0
+    </select>
+    
+    <!-- 根据邮箱统计数量（用于检查重复） -->
+    <select id="countByEmail" resultType="int">
+        SELECT COUNT(*) FROM sys_user
+        WHERE email = #{email}
+        AND tenant_id = #{tenantId}
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+        AND deleted = 0
+    </select>
+</mapper> 

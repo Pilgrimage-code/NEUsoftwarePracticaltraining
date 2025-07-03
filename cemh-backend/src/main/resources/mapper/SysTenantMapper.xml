@@ -26,7 +26,7 @@
             </if>
         </where>
         ORDER BY id DESC
-        LIMIT #{offset}, #{size}
+        LIMIT #{size} OFFSET #{offset}
     </select>
 
     <!-- 查询总数 -->

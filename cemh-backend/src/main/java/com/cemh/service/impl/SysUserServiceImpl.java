@@ -28,49 +28,25 @@ public class SysUserServiceImpl implements SysUserService {
     private SysUserMapper sysUserMapper;
 
     @Override
-    public Result<PageResult<SysUser>> getUserList(int pageNum, int pageSize, Long tenantId,
-                                                   String username, String nickname, String phone,
-                                                   Integer status, Long deptId) {
+    public Result<PageResult<SysUser>> getUserList(Integer page, Integer size, Long tenantId, String username, String nickname, String phone, Integer status, Long deptId) {
         try {
-            Page<SysUser> page = new Page<>(pageNum, pageSize);
-            QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-
-            // 如果tenantId不为空，才添加租户条件
-            if (tenantId != null) {
-                queryWrapper.eq("tenant_id", tenantId);
-            }
-            queryWrapper.eq("deleted", 0);
-
-            if (username != null && !username.trim().isEmpty()) {
-                queryWrapper.like("username", username);
-            }
-            if (nickname != null && !nickname.trim().isEmpty()) {
-                queryWrapper.like("nickname", nickname);
-            }
-            if (phone != null && !phone.trim().isEmpty()) {
-                queryWrapper.like("phone", phone);
-            }
-            if (status != null) {
-                queryWrapper.eq("status", status);
-            }
-            if (deptId != null) {
-                queryWrapper.eq("dept_id", deptId);
-            }
-
-            queryWrapper.orderByDesc("create_time");
-
-            IPage<SysUser> result = sysUserMapper.selectPage(page, queryWrapper);
-            PageResult<SysUser> pageResult = new PageResult<>(result.getRecords(), result.getTotal(), pageNum, pageSize);
+            // 计算分页参数
+            int offset = (page - 1) * size;
+            int limit = size;
+            
+            // 查询总数
+            Integer total = sysUserMapper.countUsers(tenantId, username, nickname, phone, status, deptId);
+            
+            // 查询列表
+            List<SysUser> users = sysUserMapper.selectUserList(tenantId, username, nickname, phone, status, deptId, limit, offset);
+            
+            // 创建分页结果
+            PageResult<SysUser> pageResult = new PageResult<>(users, total.longValue(), page, size);
 
             return Result.success(pageResult);
         } catch (Exception e) {
             return Result.error("获取用户列表失败：" + e.getMessage());
         }
-    }
-
-    @Override
-    public Result<PageResult<SysUser>> getUserList(Integer page, Integer size, Long tenantId, String username, String nickname, String phone, Integer status, Long deptId) {
-        return null;
     }
 
     @Override

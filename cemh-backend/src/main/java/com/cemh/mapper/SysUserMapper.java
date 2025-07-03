@@ -29,6 +29,8 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @param phone 手机号（可选）
      * @param status 状态（可选）
      * @param deptId 部门ID（可选）
+     * @param limit 每页数量
+     * @param offset 偏移量
      * @return 用户列表
      */
     List<SysUser> selectUserList(@Param("tenantId") Long tenantId, 
@@ -36,7 +38,9 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
                                 @Param("nickname") String nickname,
                                 @Param("phone") String phone,
                                 @Param("status") Integer status,
-                                @Param("deptId") Long deptId);
+                                @Param("deptId") Long deptId,
+                                @Param("limit") Integer limit,
+                                @Param("offset") Integer offset);
     
     /**
      * 统计用户数量

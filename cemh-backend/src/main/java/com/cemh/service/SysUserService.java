@@ -14,10 +14,6 @@ import java.util.List;
  */
 public interface SysUserService {
 
-    Result<PageResult<SysUser>> getUserList(int pageNum, int pageSize, Long tenantId,
-                                            String username, String nickname, String phone,
-                                            Integer status, Long deptId);
-
     /**
      * 分页查询用户列表
      */
