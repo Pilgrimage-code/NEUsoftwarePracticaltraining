@@ -21,38 +21,38 @@ public abstract class BaseEntity implements Serializable {
 
     @Schema(description = "主键ID")
     @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    protected Long id;
 
     @Schema(description = "创建时间")
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createTime;
+    protected LocalDateTime createTime;
 
     @Schema(description = "更新时间")
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updateTime;
+    protected LocalDateTime updateTime;
 
     @Schema(description = "创建人ID")
     @TableField(value = "create_by", exist = false, fill = FieldFill.INSERT)
-    private Long createBy;
+    protected Long createBy;
 
     @Schema(description = "更新人ID")
     @TableField(value = "update_by", exist = false, fill = FieldFill.INSERT_UPDATE)
-    private Long updateBy;
+    protected Long updateBy;
     
     @Schema(description = "是否删除（0：未删除，1：已删除）")
     @TableField(value = "deleted")
     @TableLogic
-    private Integer deleted;
+    protected Integer deleted;
 
     @Schema(description = "租户ID")
     @TableField(value = "tenant_id", exist = false)
-    private Long tenantId;
+    protected Long tenantId;
 
     @Schema(description = "备注")
     @TableField(value = "remark")
-    private String remark;
+    protected String remark;
 
     // Getter and Setter methods
     public Long getId() {

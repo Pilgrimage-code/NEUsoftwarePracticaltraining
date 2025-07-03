@@ -10,19 +10,14 @@ import java.time.LocalDateTime;
  */
 @TableName("sys_tenant")
 @Schema(description = "租户信息")
-public class SysTenant {
+public class SysTenant extends BaseEntity {
+
+
 
     /**
-     * 租户ID（主键）
+     * 租户编码
      */
-    @Schema(description = "租户ID")
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * 租户代码（唯一标识）
-     */
-    @Schema(description = "租户代码")
+    @Schema(description = "租户编码")
     @TableField("tenant_code")
     private String tenantCode;
 
@@ -34,25 +29,39 @@ public class SysTenant {
     private String tenantName;
 
     /**
-     * 联系人
+     * 联系人名称
      */
-    @Schema(description = "联系人")
+    @Schema(description = "联系人名称")
     @TableField("contact_name")
-    private String contactPerson;
+    private String contactName;
 
     /**
-     * 联系电话
+     * 联系人电话
      */
-    @Schema(description = "联系电话")
+    @Schema(description = "联系人电话")
     @TableField("contact_phone")
     private String contactPhone;
 
     /**
-     * 联系邮箱
+     * 联系人邮箱
      */
-    @Schema(description = "联系邮箱")
+    @Schema(description = "联系人邮箱")
     @TableField("contact_email")
     private String contactEmail;
+
+    /**
+     * 租户Logo URL
+     */
+    @Schema(description = "租户Logo URL")
+    @TableField("logo_url")
+    private String logoUrl;
+
+    /**
+     * 租户域名
+     */
+    @Schema(description = "租户域名")
+    @TableField("domain")
+    private String domain;
 
     /**
      * 租户状态：0-禁用，1-启用
@@ -62,62 +71,36 @@ public class SysTenant {
     private Integer status;
 
     /**
-     * 过期时间
+     * 租户到期时间
      */
-    @Schema(description = "过期时间")
+    @Schema(description = "租户到期时间")
     @TableField("expire_time")
     private LocalDateTime expireTime;
 
     /**
-     * 最大用户数
+     * 租户最大用户数
      */
-    @Schema(description = "最大用户数")
+    @Schema(description = "租户最大用户数")
     @TableField("max_users")
     private Integer maxUsers;
 
     /**
-     * 备注信息
+     * 租户备注
      */
-    @Schema(description = "备注")
+    @Schema(description = "租户备注")
     @TableField("remark")
     private String remark;
 
     /**
-     * 创建时间
+     * 套餐类型：0=基础版，1=专业版，2=企业版
      */
-    @Schema(description = "创建时间")
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    @Schema(description = "套餐类型")
+    @TableField("create_by")
+    private Integer packageType;
 
-    /**
-     * 更新时间
-     */
-    @Schema(description = "更新时间")
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
 
-    /**
-     * 创建人ID
-     */
-    @Schema(description = "创建人ID")
-    @TableField(value = "create_by", fill = FieldFill.INSERT)
-    private Long createBy;
-
-    /**
-     * 更新人ID
-     */
-    @Schema(description = "更新人ID")
-    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
-    private Long updateBy;
 
     // Getter and Setter methods
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getTenantCode() {
         return tenantCode;
@@ -135,12 +118,12 @@ public class SysTenant {
         this.tenantName = tenantName;
     }
 
-    public String getContactPerson() {
-        return contactPerson;
+    public String getContactName() {
+        return contactName;
     }
 
-    public void setContactPerson(String contactPerson) {
-        this.contactPerson = contactPerson;
+    public void setContactName(String contactName) {
+        this.contactName = contactName;
     }
 
     public String getContactPhone() {
@@ -157,6 +140,22 @@ public class SysTenant {
 
     public void setContactEmail(String contactEmail) {
         this.contactEmail = contactEmail;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     public Integer getStatus() {
@@ -191,36 +190,14 @@ public class SysTenant {
         this.remark = remark;
     }
 
-    public LocalDateTime getCreateTime() {
-        return createTime;
+    public Integer getPackageType() {
+        return packageType;
     }
 
-    public void setCreateTime(LocalDateTime createTime) {
-        this.createTime = createTime;
+    public void setPackageType(Integer packageType) {
+        this.packageType = packageType;
     }
 
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
-    }
 
-    public void setUpdateTime(LocalDateTime updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Long getCreateBy() {
-        return createBy;
-    }
-
-    public void setCreateBy(Long createBy) {
-        this.createBy = createBy;
-    }
-
-    public Long getUpdateBy() {
-        return updateBy;
-    }
-
-    public void setUpdateBy(Long updateBy) {
-        this.updateBy = updateBy;
-    }
 }
 

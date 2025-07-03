@@ -206,12 +206,12 @@
                 <el-input-number v-model="securitySettings.minPasswordLength" :min="6" :max="20" style="width: 200px" />
               </el-form-item>
               <el-form-item label="密码复杂度要求">
-                <el-checkbox-group v-model="securitySettings.passwordRules">
-                  <el-checkbox label="uppercase">包含大写字母</el-checkbox>
-                  <el-checkbox label="lowercase">包含小写字母</el-checkbox>
-                  <el-checkbox label="number">包含数字</el-checkbox>
-                  <el-checkbox label="special">包含特殊字符</el-checkbox>
-                </el-checkbox-group>
+                        <el-checkbox-group v-model="securitySettings.passwordRules">
+          <el-checkbox value="uppercase">包含大写字母</el-checkbox>
+          <el-checkbox value="lowercase">包含小写字母</el-checkbox>
+          <el-checkbox value="number">包含数字</el-checkbox>
+          <el-checkbox value="special">包含特殊字符</el-checkbox>
+        </el-checkbox-group>
               </el-form-item>
               <el-form-item label="登录失败锁定">
                 <el-switch v-model="securitySettings.loginLockEnabled" />
@@ -274,12 +274,12 @@
                 <el-switch v-model="backupSettings.compress" />
               </el-form-item>
               <el-form-item label="备份内容">
-                <el-checkbox-group v-model="backupSettings.backupContent">
-                  <el-checkbox label="database">数据库</el-checkbox>
-                  <el-checkbox label="files">上传文件</el-checkbox>
-                  <el-checkbox label="config">配置文件</el-checkbox>
-                  <el-checkbox label="logs">日志文件</el-checkbox>
-                </el-checkbox-group>
+                        <el-checkbox-group v-model="backupSettings.backupContent">
+          <el-checkbox value="database">数据库</el-checkbox>
+          <el-checkbox value="files">上传文件</el-checkbox>
+          <el-checkbox value="config">配置文件</el-checkbox>
+          <el-checkbox value="logs">日志文件</el-checkbox>
+        </el-checkbox-group>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="handleSaveBackup" :loading="saving">保存设置</el-button>

@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -22,6 +25,9 @@ import java.time.LocalDateTime;
 public class SysUser extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
     @Schema(description = "租户ID")
     @TableField("tenant_id")
@@ -90,6 +96,16 @@ public class SysUser extends BaseEntity {
     @Schema(description = "备注")
     @TableField("remark")
     private String remark;
+
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
+
+    private Long createBy;
+    private Long updateBy;
+    private Integer deleted;
 
     // 非数据库字段
     @Schema(description = "部门名称")
@@ -255,6 +271,30 @@ public class SysUser extends BaseEntity {
         this.tenantName = tenantName;
     }
 
+    public String getRealName() {
+        return nickname;
+    }
+
+    public void setRealName(String realName) {
+        this.nickname = realName;
+    }
+
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
+    }
+
     @Override
     public String toString() {
         return "SysUser{" +
@@ -275,6 +315,8 @@ public class SysUser extends BaseEntity {
                 ", deptName='" + deptName + '\'' +
                 ", roleNames='" + roleNames + '\'' +
                 ", tenantName='" + tenantName + '\'' +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
                 "} " + super.toString();
     }
 }

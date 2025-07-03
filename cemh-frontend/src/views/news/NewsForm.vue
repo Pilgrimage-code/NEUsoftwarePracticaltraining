@@ -232,11 +232,11 @@
             </el-form-item>
 
             <el-form-item label="评论设置">
-              <el-checkbox-group v-model="formData.commentSettings">
-                <el-checkbox label="allowComment">允许评论</el-checkbox>
-                <el-checkbox label="requireApproval">评论需审核</el-checkbox>
-                <el-checkbox label="notifyAuthor">评论通知作者</el-checkbox>
-              </el-checkbox-group>
+                      <el-checkbox-group v-model="formData.commentSettings">
+          <el-checkbox value="allowComment">允许评论</el-checkbox>
+          <el-checkbox value="requireApproval">评论需审核</el-checkbox>
+          <el-checkbox value="notifyAuthor">评论通知作者</el-checkbox>
+        </el-checkbox-group>
             </el-form-item>
           </div>
         </div>

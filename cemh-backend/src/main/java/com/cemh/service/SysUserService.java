@@ -17,9 +17,7 @@ public interface SysUserService {
     /**
      * 分页查询用户列表
      */
-    Result<PageResult<SysUser>> getUserList(int pageNum, int pageSize, Long tenantId, 
-                                           String username, String nickname, String phone, 
-                                           Integer status, Long deptId);
+    Result<PageResult<SysUser>> getUserList(Integer page, Integer size, Long tenantId, String username, String nickname, String phone, Integer status, Long deptId);
 
     /**
      * 根据ID查询用户

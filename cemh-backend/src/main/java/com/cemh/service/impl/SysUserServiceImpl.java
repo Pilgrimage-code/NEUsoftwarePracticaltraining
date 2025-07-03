@@ -28,40 +28,18 @@ public class SysUserServiceImpl implements SysUserService {
     private SysUserMapper sysUserMapper;
     
     @Override
-    public Result<PageResult<SysUser>> getUserList(int pageNum, int pageSize, Long tenantId, 
-                                                  String username, String nickname, String phone, 
-                                                  Integer status, Long deptId) {
-        try {
-            Page<SysUser> page = new Page<>(pageNum, pageSize);
-            QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("tenant_id", tenantId)
-                       .eq("deleted", 0);
-            
-            if (username != null && !username.trim().isEmpty()) {
-                queryWrapper.like("username", username);
-            }
-            if (nickname != null && !nickname.trim().isEmpty()) {
-                queryWrapper.like("nickname", nickname);
-            }
-            if (phone != null && !phone.trim().isEmpty()) {
-                queryWrapper.like("phone", phone);
-            }
-            if (status != null) {
-                queryWrapper.eq("status", status);
-            }
-            if (deptId != null) {
-                queryWrapper.eq("dept_id", deptId);
-            }
-            
-            queryWrapper.orderByDesc("create_time");
-            
-            IPage<SysUser> result = sysUserMapper.selectPage(page, queryWrapper);
-            PageResult<SysUser> pageResult = new PageResult<>(result.getRecords(), result.getTotal(), pageNum, pageSize);
-            
-            return Result.success(pageResult);
-        } catch (Exception e) {
-            return Result.error("获取用户列表失败：" + e.getMessage());
-        }
+    public Result<PageResult<SysUser>> getUserList(Integer page, Integer size, Long tenantId, String username, String nickname, String phone, Integer status, Long deptId) {
+        QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
+        if (tenantId != null) wrapper.eq("tenant_id", tenantId);
+        if (username != null && !username.isEmpty()) wrapper.like("username", username);
+        if (nickname != null && !nickname.isEmpty()) wrapper.like("nickname", nickname);
+        if (phone != null && !phone.isEmpty()) wrapper.like("phone", phone);
+        if (status != null) wrapper.eq("status", status);
+        if (deptId != null) wrapper.eq("dept_id", deptId);
+        Page<SysUser> pageObj = new Page<>(page, size);
+        Page<SysUser> result = sysUserMapper.selectPage(pageObj, wrapper);
+        PageResult<SysUser> pageResult = PageResult.of(result);
+        return Result.success(pageResult);
     }
     
     @Override
@@ -92,104 +70,26 @@ public class SysUserServiceImpl implements SysUserService {
     
     @Override
     public Result<Void> createUser(SysUser user) {
-        try {
-            // 验证必填字段
-            if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
-                return Result.error("用户名不能为空");
-            }
-            if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
-                return Result.error("密码不能为空");
-            }
-            
-            // 检查用户名是否已存在
-            QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("username", user.getUsername())
-                       .eq("tenant_id", user.getTenantId())
-                       .eq("deleted", 0);
-            
-            SysUser existingUser = sysUserMapper.selectOne(queryWrapper);
-            if (existingUser != null) {
-                return Result.error("用户名已存在");
-            }
-            
-            // 加密密码
-            user.setPassword(PasswordUtils.encode(user.getPassword()));
-            
-            // 设置默认值
-            user.setCreateTime(LocalDateTime.now());
-            user.setUpdateTime(LocalDateTime.now());
-            user.setDeleted(0);
-            if (user.getStatus() == null) {
-                user.setStatus(1); // 默认启用
-            }
-            
-            int result = sysUserMapper.insert(user);
-            if (result > 0) {
-                return Result.success();
-            } else {
-                return Result.error("用户创建失败");
-            }
-        } catch (Exception e) {
-            return Result.error("用户创建失败：" + e.getMessage());
+        if (user.getCreateTime() == null) {
+            user.setCreateTime(java.time.LocalDateTime.now());
         }
+        if (user.getUpdateTime() == null) {
+            user.setUpdateTime(java.time.LocalDateTime.now());
+        }
+        sysUserMapper.insert(user);
+        return Result.success();
     }
     
     @Override
     public Result<Void> updateUser(SysUser user) {
-        try {
-            // 检查用户是否存在
-            SysUser existingUser = sysUserMapper.selectById(user.getId());
-            if (existingUser == null) {
-                return Result.error("用户不存在");
-            }
-            
-            // 检查租户权限
-            if (!existingUser.getTenantId().equals(user.getTenantId())) {
-                return Result.error("无权限修改此用户");
-            }
-            
-            // 设置更新时间
-            user.setUpdateTime(LocalDateTime.now());
-            
-            // 如果有密码，需要加密
-            if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
-                user.setPassword(PasswordUtils.encode(user.getPassword()));
-            } else {
-                user.setPassword(null); // 不更新密码
-            }
-            
-            int result = sysUserMapper.updateById(user);
-            if (result > 0) {
-                return Result.success();
-            } else {
-                return Result.error("用户更新失败");
-            }
-        } catch (Exception e) {
-            return Result.error("用户更新失败：" + e.getMessage());
-        }
+        sysUserMapper.updateById(user);
+        return Result.success();
     }
     
     @Override
     public Result<Void> deleteUser(Long id, Long tenantId) {
-        try {
-            SysUser user = sysUserMapper.selectById(id);
-            if (user == null) {
-                return Result.error("用户不存在");
-            }
-            
-            if (!user.getTenantId().equals(tenantId)) {
-                return Result.error("无权限删除此用户");
-            }
-            
-            int result = sysUserMapper.deleteById(id);
-            if (result > 0) {
-                return Result.success();
-            } else {
-                return Result.error("用户删除失败");
-            }
-        } catch (Exception e) {
-            return Result.error("用户删除失败：" + e.getMessage());
-        }
+        sysUserMapper.deleteById(id);
+        return Result.success();
     }
     
     @Override

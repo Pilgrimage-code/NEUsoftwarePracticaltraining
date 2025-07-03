@@ -49,9 +49,15 @@ public class SysUserController {
     
     @Operation(summary = "创建用户")
     @PostMapping
-    public Result<Void> createUser(@Valid @RequestBody SysUser user,
+    public Result<Void> createUser(@RequestBody SysUser user,
                                    @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
                                    @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        if (user.getNickname() == null && user.getRealName() != null) {
+            user.setNickname(user.getRealName());
+        }
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            user.setPassword(com.cemh.utils.PasswordUtils.encode("123456"));
+        }
         if (tenantId != null) {
             user.setTenantId(tenantId);
         }

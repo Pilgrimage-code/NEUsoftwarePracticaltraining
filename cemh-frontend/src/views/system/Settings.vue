@@ -322,13 +322,13 @@
             
             <div class="form-group">
               <label class="form-label">允许的文件类型</label>
-              <el-checkbox-group v-model="settings.storage.allowedTypes">
-                <el-checkbox label="image">图片文件</el-checkbox>
-                <el-checkbox label="document">文档文件</el-checkbox>
-                <el-checkbox label="video">视频文件</el-checkbox>
-                <el-checkbox label="audio">音频文件</el-checkbox>
-                <el-checkbox label="archive">压缩文件</el-checkbox>
-              </el-checkbox-group>
+                      <el-checkbox-group v-model="settings.storage.allowedTypes">
+          <el-checkbox value="image">图片文件</el-checkbox>
+          <el-checkbox value="document">文档文件</el-checkbox>
+          <el-checkbox value="video">视频文件</el-checkbox>
+          <el-checkbox value="audio">音频文件</el-checkbox>
+          <el-checkbox value="archive">压缩文件</el-checkbox>
+        </el-checkbox-group>
             </div>
             
             <div class="form-group">

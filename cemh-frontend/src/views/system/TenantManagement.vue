@@ -136,6 +136,9 @@
           <i class="el-icon-download"></i>
           导出数据
         </el-button>
+        <el-button type="danger" @click="showDeletedDialog = true">
+          最近删除
+        </el-button>
       </div>
     </div>
 
@@ -204,6 +207,10 @@
               <el-button size="small" @click="handleEdit(row)">
                 <i class="el-icon-edit"></i>
                 编辑
+              </el-button>
+              <el-button size="small" type="danger" @click="handleDelete(row)">
+                <i class="el-icon-delete"></i>
+                删除
               </el-button>
               <el-dropdown @command="(command) => handleDropdownCommand(command, row)">
                 <el-button size="small" type="info">
@@ -350,14 +357,14 @@
               </el-col>
             </el-row>
             <el-form-item label="功能权限">
-              <el-checkbox-group v-model="tenantForm.features">
-                <el-checkbox label="user_management">用户管理</el-checkbox>
-                <el-checkbox label="meeting_management">会议管理</el-checkbox>
-                <el-checkbox label="news_management">资讯管理</el-checkbox>
-                <el-checkbox label="course_management">课程管理</el-checkbox>
-                <el-checkbox label="data_analysis">数据分析</el-checkbox>
-                <el-checkbox label="api_access">API接口</el-checkbox>
-              </el-checkbox-group>
+                      <el-checkbox-group v-model="tenantForm.features">
+          <el-checkbox value="user_management">用户管理</el-checkbox>
+          <el-checkbox value="meeting_management">会议管理</el-checkbox>
+          <el-checkbox value="news_management">资讯管理</el-checkbox>
+          <el-checkbox value="course_management">课程管理</el-checkbox>
+          <el-checkbox value="data_analysis">数据分析</el-checkbox>
+          <el-checkbox value="api_access">API接口</el-checkbox>
+        </el-checkbox-group>
             </el-form-item>
           </el-tab-pane>
           
@@ -435,12 +442,59 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- 最近删除的租户对话框 -->
+    <el-dialog v-model="showDeletedDialog" title="最近删除的租户" width="80%">
+      <el-table :data="deletedTenantList" ref="deletedTable" @selection-change="handleDeletedSelectionChange">
+        <el-table-column type="selection" width="55" />
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="name" label="租户名称" />
+        <el-table-column prop="code" label="租户代码" />
+        <el-table-column prop="contactPerson" label="联系人" />
+        <el-table-column prop="contactPhone" label="联系电话" />
+        <el-table-column prop="status" label="状态" />
+        <el-table-column prop="createTime" label="创建时间" />
+        <el-table-column label="操作" width="220">
+          <template #default="{ row }">
+            <el-button size="small" @click="handleView(row)">查看</el-button>
+            <el-button size="small" type="success" @click="handleRestore(row)">恢复</el-button>
+            <el-button size="small" type="danger" @click="handleRealDelete(row)">彻底删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div style="margin-top: 10px;">
+        <el-button type="danger" :disabled="deletedSelected.length === 0" @click="handleBatchRealDelete">
+          批量彻底删除
+        </el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 续费管理弹窗 -->
+    <el-dialog v-model="renewDialogVisible" title="续费管理" width="400px">
+      <el-form>
+        <el-form-item label="年">
+          <el-input-number v-model="renewForm.years" :min="0" :controls="false" placeholder="可为空" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="月">
+          <el-input-number v-model="renewForm.months" :min="0" :controls="false" placeholder="可为空" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="日">
+          <el-input-number v-model="renewForm.days" :min="0" :controls="false" placeholder="可为空" style="width: 100%" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="renewDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleRenewSubmit">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getTenantList as fetchTenantList, createTenant, updateTenant, deleteTenant, realDeleteTenant, renewTenant, disableTenant, enableTenant } from '@/api/tenant'
+import request from '@/utils/request'
 
 export default {
   name: 'TenantManagement',
@@ -456,6 +510,12 @@ export default {
     const tenantFormRef = ref(null)
     const currentTenant = ref(null)
     const activeTab = ref('basic')
+    const showDeletedDialog = ref(false)
+    const deletedTenantList = ref([])
+    const deletedSelected = ref([])
+    const renewDialogVisible = ref(false)
+    const renewForm = reactive({ years: null, months: null, days: null })
+    const renewTenantId = ref(null)
 
     // 搜索表单
     const searchForm = reactive({
@@ -522,108 +582,41 @@ export default {
       ]
     }
 
-    // 模拟租户数据
-    const mockTenants = [
-      {
-        id: 1,
-        name: '阿里巴巴集团',
-        code: 'alibaba',
-        contactPerson: '张三',
-        contactPhone: '13800138000',
-        contactEmail: 'zhangsan@alibaba.com',
-        address: '杭州市余杭区文一西路969号',
-        logo: '',
-        packageType: 3,
-        status: 1,
-        userCount: 1250,
-        maxUsers: 2000,
-        storageUsed: 45.6,
-        storageLimit: 100,
-        startTime: '2024-01-01',
-        expireTime: '2024-12-31',
-        features: ['user_management', 'meeting_management', 'news_management', 'course_management', 'data_analysis', 'api_access'],
-        createTime: '2024-01-01 09:00:00',
-        remark: '企业版客户'
-      },
-      {
-        id: 2,
-        name: '腾讯科技',
-        code: 'tencent',
-        contactPerson: '李四',
-        contactPhone: '13900139000',
-        contactEmail: 'lisi@tencent.com',
-        address: '深圳市南山区科技园',
-        logo: '',
-        packageType: 2,
-        status: 1,
-        userCount: 800,
-        maxUsers: 1000,
-        storageUsed: 28.3,
-        storageLimit: 50,
-        startTime: '2024-02-01',
-        expireTime: '2024-07-31',
-        features: ['user_management', 'meeting_management', 'news_management', 'course_management'],
-        createTime: '2024-02-01 10:00:00',
-        remark: '专业版客户'
-      }
-    ]
-
-    // 获取套餐类型
-    const getPackageType = (type) => {
-      const types = { 1: 'info', 2: 'warning', 3: 'success' }
-      return types[type] || 'info'
-    }
-
-    // 获取套餐文本
-    const getPackageText = (type) => {
-      const texts = { 1: '基础版', 2: '专业版', 3: '企业版' }
-      return texts[type] || '未知'
-    }
-
-    // 获取状态类型
-    const getStatusType = (status) => {
-      const types = { 0: 'danger', 1: 'success', 2: 'warning' }
-      return types[status] || 'info'
-    }
-
-    // 获取状态文本
-    const getStatusText = (status) => {
-      const texts = { 0: '停用', 1: '正常', 2: '过期' }
-      return texts[status] || '未知'
-    }
-
-    // 获取到期时间样式
-    const getExpireClass = (expireTime) => {
-      const now = new Date()
-      const expire = new Date(expireTime)
-      const diffDays = Math.ceil((expire - now) / (1000 * 60 * 60 * 24))
-      
-      if (diffDays < 0) return 'expired'
-      if (diffDays <= 30) return 'warning'
-      return 'normal'
-    }
-
-    // 获取功能文本
-    const getFeatureText = (feature) => {
-      const texts = {
-        user_management: '用户管理',
-        meeting_management: '会议管理',
-        news_management: '资讯管理',
-        course_management: '课程管理',
-        data_analysis: '数据分析',
-        api_access: 'API接口'
-      }
-      return texts[feature] || feature
-    }
-
-    // 获取租户列表
+    // 获取租户列表（多条件）
     const getTenantList = async () => {
       loading.value = true
       try {
-        // 模拟API调用
-        await new Promise(resolve => setTimeout(resolve, 500))
-        tenantList.value = mockTenants
-        pagination.total = mockTenants.length
+        const params = {
+          page: pagination.page,
+          size: pagination.size,
+          name: searchForm.name,
+          code: searchForm.code,
+          status: searchForm.status,
+          packageType: searchForm.packageType
+        }
+        const res = await fetchTenantList(params)
+        if (res && res.data) {
+          tenantList.value = (res.data.records || []).map(item => ({
+            id: item.id,
+            name: item.tenantName,
+            code: item.tenantCode,
+            contactPerson: item.contactName,
+            contactPhone: item.contactPhone,
+            contactEmail: item.contactEmail,
+            logo: item.logoUrl,
+            status: item.status,
+            packageType: item.createBy,
+            expireTime: item.expireTime,
+            maxUsers: item.maxUsers,
+            remark: item.remark,
+            createTime: item.createTime,
+            address: item.remark,
+          }))
+          pagination.total = res.data.total || 0
+        } else {
+          tenantList.value = []
+          pagination.total = 0
+        }
       } catch (error) {
         ElMessage.error('获取租户列表失败')
       } finally {
@@ -680,7 +673,11 @@ export default {
       try {
         switch (action) {
           case 'renew':
-            ElMessage.info('续费管理功能开发中...')
+            renewTenantId.value = row.id
+            renewForm.years = null
+            renewForm.months = null
+            renewForm.days = null
+            renewDialogVisible.value = true
             break
           case 'config':
             ElMessage.info('配置管理功能开发中...')
@@ -695,6 +692,16 @@ export default {
             ElMessage.success('数据备份已启动')
             break
           case 'enable':
+            await ElMessageBox.confirm(
+              `确定要启用租户 "${row.name}" 吗？`,
+              '启用确认',
+              {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'success'
+              }
+            )
+            await enableTenant(row.id)
             ElMessage.success('租户启用成功')
             break
           case 'disable':
@@ -707,6 +714,7 @@ export default {
                 type: 'warning'
               }
             )
+            await disableTenant(row.id)
             ElMessage.success('租户停用成功')
             break
         }
@@ -775,19 +783,73 @@ export default {
       try {
         await tenantFormRef.value.validate()
         submitLoading.value = true
-        
-        // 模拟API调用
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        ElMessage.success(tenantForm.id ? '更新成功' : '创建成功')
-        dialogVisible.value = false
-        getTenantList()
+        // 字段适配
+        const payload = {
+          tenantName: tenantForm.name,
+          tenantCode: tenantForm.code,
+          contactName: tenantForm.contactPerson,
+          contactPhone: tenantForm.contactPhone,
+          contactEmail: tenantForm.contactEmail,
+          logoUrl: tenantForm.logo,
+          status: tenantForm.status,
+          expireTime: tenantForm.expireTime,
+          maxUsers: tenantForm.maxUsers,
+          remark: tenantForm.address,
+          packageType: tenantForm.packageType
+        }
+        if (!tenantForm.id) {
+          // 新增
+          const res = await createTenant(payload)
+          if (res && res.success) {
+            ElMessage.success('创建成功')
+            dialogVisible.value = false
+            getTenantList()
+          } else {
+            ElMessage.error(res?.message || '创建失败')
+          }
+        } else {
+          // 编辑
+          const res = await updateTenant(tenantForm.id, payload)
+          if (res && res.success) {
+            ElMessage.success('更新成功')
+            dialogVisible.value = false
+            getTenantList()
+          } else {
+            ElMessage.error(res?.message || '更新失败')
+          }
+        }
       } catch (error) {
+        console.error('提交表单错误:', error)
         if (error !== false) {
-          ElMessage.error('操作失败')
+          ElMessage.error(error?.message || '操作失败')
         }
       } finally {
         submitLoading.value = false
+      }
+    }
+
+    // 删除租户
+    const handleDelete = async (row) => {
+      try {
+        console.log('删除租户ID:', row.id, row)
+        await ElMessageBox.confirm(`确定要删除租户 "${row.name}" 吗？`, '删除确认', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        const res = await deleteTenant(row.id)
+        console.log('删除请求返回:', res)
+        if (res && res.success) {
+          ElMessage.success('删除成功')
+          getTenantList()
+        } else {
+          ElMessage.error(res?.message || '删除失败')
+        }
+      } catch (error) {
+        console.error('删除租户错误:', error)
+        if (error !== 'cancel') {
+          ElMessage.error(error?.message || '删除失败')
+        }
       }
     }
 
@@ -829,6 +891,122 @@ export default {
         return d.toLocaleDateString('zh-CN')
       }
       return d.toLocaleString('zh-CN')
+    }
+
+    // 获取套餐类型
+    const getPackageType = (type) => {
+      const types = { 1: 'info', 2: 'warning', 3: 'success' }
+      return types[type] || 'info'
+    }
+
+    // 获取套餐文本
+    const getPackageText = (type) => {
+      const texts = { 1: '基础版', 2: '专业版', 3: '企业版' }
+      return texts[type] || '未知'
+    }
+
+    // 获取状态类型
+    const getStatusType = (status) => {
+      const types = { 0: 'danger', 1: 'success', 2: 'warning' }
+      return types[status] || 'info'
+    }
+
+    // 获取状态文本
+    const getStatusText = (status) => {
+      const texts = { 0: '停用', 1: '正常', 2: '过期' }
+      return texts[status] || '未知'
+    }
+
+    // 获取到期时间样式
+    const getExpireClass = (expireTime) => {
+      const now = new Date()
+      const expire = new Date(expireTime)
+      const diffDays = Math.ceil((expire - now) / (1000 * 60 * 60 * 24))
+      
+      if (diffDays < 0) return 'expired'
+      if (diffDays <= 30) return 'warning'
+      return 'normal'
+    }
+
+    // 获取功能文本
+    const getFeatureText = (feature) => {
+      const texts = {
+        user_management: '用户管理',
+        meeting_management: '会议管理',
+        news_management: '资讯管理',
+        course_management: '课程管理',
+        data_analysis: '数据分析',
+        api_access: 'API接口'
+      }
+      return texts[feature] || feature
+    }
+
+    // 获取已删除的租户列表
+    const fetchDeletedTenants = async () => {
+      const res = await fetchTenantList({ page: 1, size: 1000, deleted: 1 })
+      deletedTenantList.value = (res?.data?.records || []).map(item => ({
+        id: item.id,
+        name: item.tenantName,
+        code: item.tenantCode,
+        contactPerson: item.contactName,
+        contactPhone: item.contactPhone,
+        status: item.status,
+        createTime: item.createTime,
+        ...item
+      }))
+    }
+
+    // 监听showDeletedDialog的变化
+    watch(showDeletedDialog, (val) => {
+      if (val) fetchDeletedTenants()
+    })
+
+    // 处理已删除租户的选择变化
+    const handleDeletedSelectionChange = (rows) => {
+      deletedSelected.value = rows
+    }
+
+    // 恢复已删除的租户
+    const handleRestore = async (row) => {
+      await request.post(`/api/tenants/restore/${row.id}`)
+      ElMessage.success('恢复成功')
+      fetchDeletedTenants()
+      getTenantList()
+    }
+
+    // 彻底删除已删除的租户
+    const handleRealDelete = async (row) => {
+      await realDeleteTenant(row.id)
+      ElMessage.success('彻底删除成功')
+      fetchDeletedTenants()
+    }
+
+    // 批量彻底删除已删除的租户
+    const handleBatchRealDelete = async () => {
+      await Promise.all(deletedSelected.value.map(row => realDeleteTenant(row.id)))
+      ElMessage.success('批量彻底删除成功')
+      fetchDeletedTenants()
+    }
+
+    // 续费提交
+    const handleRenewSubmit = async () => {
+      if (!renewForm.years && !renewForm.months && !renewForm.days) {
+        ElMessage.error('年/月/日不能全部为空')
+        return
+      }
+      try {
+        await renewTenant({
+          tenantId: renewTenantId.value,
+          years: renewForm.years,
+          months: renewForm.months,
+          days: renewForm.days
+        })
+        ElMessage.success('续费成功')
+        renewDialogVisible.value = false
+        getTenantList()
+      } catch (e) {
+        ElMessage.error('续费失败')
+      }
     }
 
     // 组件挂载时获取数据
@@ -875,7 +1053,20 @@ export default {
       handleCurrentChange,
       handleSubmit,
       handleDialogClose,
-      formatDate
+      formatDate,
+      handleDelete,
+      showDeletedDialog,
+      deletedTenantList,
+      deletedSelected,
+      fetchDeletedTenants,
+      handleDeletedSelectionChange,
+      handleRestore,
+      handleRealDelete,
+      handleBatchRealDelete,
+      renewDialogVisible,
+      renewForm,
+      renewTenantId,
+      handleRenewSubmit
     }
   }
 }
