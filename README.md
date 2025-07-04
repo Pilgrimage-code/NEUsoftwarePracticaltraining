@@ -23,7 +23,7 @@
 
   <h3 align="center">"完美的"README模板</h3>
   <p align="center">
-    一个"完美的"README模板去快速开始你的项目！
+    快速开始项目！
     <br />
     <a href="https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining"><strong>探索本项目的文档 »</strong></a>
     <br />
