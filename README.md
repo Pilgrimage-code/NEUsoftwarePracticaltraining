@@ -187,7 +187,6 @@ mvn spring-boot:run
 [issues-url]: https://img.shields.io/github/issues/Pilgrimage-code/NEUsoftwarePracticaltraining.svg
 [license-shield]: https://img.shields.io/github/license/Pilgrimage-code/NEUsoftwarePracticaltraining.svg?style=flat-square
 [license-url]: https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/main/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&colorB=555
 
 
 
