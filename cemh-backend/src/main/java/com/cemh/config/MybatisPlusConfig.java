@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * MyBatis Plus配置类
- * 
+ *
  * @author 测盟汇技术团队
  * @version 1.0.0
  * @since 2024-06-15
@@ -35,7 +35,7 @@ public class MybatisPlusConfig {
     /**
      * 自动填充处理器
      */
-    @Component
+    //@Component
     public static class MyMetaObjectHandler implements MetaObjectHandler {
 
         @Override

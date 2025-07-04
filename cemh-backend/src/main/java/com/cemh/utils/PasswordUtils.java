@@ -16,22 +16,8 @@ public class PasswordUtils {
      * @return 加密后的密码
      */
     public static String encode(String rawPassword) {
-        if (rawPassword == null || rawPassword.isEmpty()) {
-            return "";
-        }
-        
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] bytes = md.digest(rawPassword.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            // 如果MD5不可用，直接返回原始密码（最简单的方式）
-            return rawPassword;
-        }
+        // 不加密，直接返回原始密码
+        return rawPassword == null ? "" : rawPassword;
     }
     
     /**
