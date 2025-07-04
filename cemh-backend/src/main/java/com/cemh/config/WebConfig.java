@@ -1,6 +1,9 @@
 package com.cemh.config;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -51,15 +54,57 @@ public class WebConfig implements WebMvcConfigurer {
         // 配置日期时间模块
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         
-        // 设置日期时间格式
+        // 使用自定义的反序列化器支持多种日期格式
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(dateTimeFormatter));
-        javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(dateTimeFormatter));
+        
+        // 创建支持多种格式的LocalDateTime反序列化器
+        javaTimeModule.addDeserializer(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
+            @Override
+            public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws java.io.IOException {
+                String dateString = p.getText();
+                
+                if (dateString == null || dateString.trim().isEmpty()) {
+                    return null;
+                }
+
+                // 如果包含时区信息（Z或+/-时区偏移），先转换为ZonedDateTime再转为LocalDateTime
+                if (dateString.contains("Z") || dateString.matches(".*[+-]\\d{2}:?\\d{2}$")) {
+                    try {
+                        java.time.ZonedDateTime zonedDateTime = java.time.ZonedDateTime.parse(dateString);
+                        return zonedDateTime.toLocalDateTime();
+                    } catch (java.time.format.DateTimeParseException e) {
+                        // 继续尝试其他格式
+                    }
+                }
+
+                // 尝试各种格式
+                java.time.format.DateTimeFormatter[] formatters = {
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"),
+                    java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                };
+                
+                for (java.time.format.DateTimeFormatter formatter : formatters) {
+                    try {
+                        return LocalDateTime.parse(dateString, formatter);
+                    } catch (java.time.format.DateTimeParseException e) {
+                        // 继续尝试下一个格式
+                    }
+                }
+
+                // 如果所有格式都失败，抛出异常
+                throw new java.io.IOException("无法解析日期时间字符串: " + dateString);
+            }
+        });
         
         objectMapper.registerModule(javaTimeModule);
         
         // 忽略未知属性
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // 允许接受空字符串作为null值
+        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
         
         converter.setObjectMapper(objectMapper);
         return converter;

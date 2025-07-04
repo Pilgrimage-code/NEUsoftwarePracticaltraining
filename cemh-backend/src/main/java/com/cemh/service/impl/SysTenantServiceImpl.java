@@ -74,6 +74,21 @@ public class SysTenantServiceImpl implements SysTenantService {
     @Override
     public Result<Void> updateTenant(SysTenant tenant) {
         try {
+            // 验证必须字段
+            if (tenant == null || tenant.getId() == null) {
+                return Result.error("租户ID不能为空");
+            }
+            
+            if (tenant.getExpireTime() == null) {
+                return Result.error("到期时间不能为空");
+            }
+            
+            // 检查租户是否存在
+            SysTenant originalTenant = sysTenantMapper.selectById(tenant.getId());
+            if (originalTenant == null) {
+                return Result.error("租户不存在");
+            }
+            
             // 检查租户编码是否已被其他租户使用（只检查未删除的记录）
             QueryWrapper<SysTenant> wrapper = new QueryWrapper<>();
             wrapper.eq("tenant_code", tenant.getTenantCode())
@@ -93,9 +108,18 @@ public class SysTenantServiceImpl implements SysTenantService {
             if (existingTenant != null) {
                 return Result.error("租户名称已存在，请使用其他名称");
             }
+            
+            // 保留不应该被更新的字段
+            tenant.setCreateTime(originalTenant.getCreateTime());
+            tenant.setCreateBy(originalTenant.getCreateBy());
 
-            sysTenantMapper.updateById(tenant);
-            return Result.success();
+            // 执行更新
+            int updated = sysTenantMapper.updateById(tenant);
+            if (updated > 0) {
+                return Result.success();
+            } else {
+                return Result.error("更新失败");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return Result.error("更新租户失败：" + e.getMessage());

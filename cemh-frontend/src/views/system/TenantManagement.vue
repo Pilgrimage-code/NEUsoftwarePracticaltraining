@@ -663,6 +663,7 @@ export default {
     // 编辑租户
     const handleEdit = (row) => {
       dialogTitle.value = '编辑租户'
+      console.log('编辑租户:', row.startTime, row.expireTime)
       Object.assign(tenantForm, {
         ...row,
         startTime: new Date(row.startTime),
@@ -821,6 +822,22 @@ export default {
       try {
         await tenantFormRef.value.validate()
         submitLoading.value = true
+        
+        // 处理日期格式
+        console.log("原始expireTime类型:", typeof tenantForm.expireTime, "值:", tenantForm.expireTime);
+        let formattedExpireTime = tenantForm.expireTime;
+        if (tenantForm.expireTime instanceof Date) {
+          // 转换为本地时间字符串，格式：YYYY-MM-DD HH:mm:ss
+          const year = tenantForm.expireTime.getFullYear();
+          const month = String(tenantForm.expireTime.getMonth() + 1).padStart(2, '0');
+          const day = String(tenantForm.expireTime.getDate()).padStart(2, '0');
+          const hours = String(tenantForm.expireTime.getHours()).padStart(2, '0');
+          const minutes = String(tenantForm.expireTime.getMinutes()).padStart(2, '0');
+          const seconds = String(tenantForm.expireTime.getSeconds()).padStart(2, '0');
+          formattedExpireTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          console.log("格式化后的expireTime:", formattedExpireTime);
+        }
+        
         // 字段适配
         const payload = {
           tenantName: tenantForm.name,
@@ -830,7 +847,7 @@ export default {
           contactEmail: tenantForm.contactEmail,
           logoUrl: tenantForm.logo,
           status: tenantForm.status,
-          expireTime: tenantForm.expireTime,
+          expireTime: formattedExpireTime,
           maxUsers: tenantForm.maxUsers,
           remark: tenantForm.address,
           packageType: tenantForm.packageType
