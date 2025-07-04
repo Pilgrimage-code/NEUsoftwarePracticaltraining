@@ -173,7 +173,7 @@ xxx@xxxx
 
 ### 版权说明
 
-该项目签署了MIT 授权许可，详情请参阅 [LICENSE.txt](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/LICENSE.txt)
+该项目签署了MIT 授权许可，详情请参阅 [LICENSE.txt](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/master/LICENSE.txt)
 
 ### 鸣谢
 
