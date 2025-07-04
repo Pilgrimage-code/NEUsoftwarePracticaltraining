@@ -1,45 +1,197 @@
-# 1.Web端登录功能
-  1.1 注册功能
-	1.2 登录功能
-	1.3 个人信息管理
 
-# 1.Web端用户管理子系统(尚承一)
-	1.1用户管理
-		1.1.1  用户组织架构列表  
-		1.1.2 用户列表根据条件查询
-		1.1.3 新增用户
-		1.1.4 用户修改
-		1.1.5 用户删除
-	1.2 租户管理
-		1.2.1  租户列表 
-		1.2.2 新增租户
-		1.2.3 租户修改
-		1.2.4 租户删除
 
-# 2.Web端组织管理子系统（李旋）
-	2.1部门管理
-		2.1.1部门列表
-		2.1.2 新增部门
-		2.1.3 部门修改
-		2.1.4 部门删除
+# 校园教育会议中心系统 (CEMH)
 
-# 3.Web端行业动态管理子系统（邵）
-	3.1  资讯管理
-		3.1.1资讯列表
-		3.1.2 新增资讯
-		3.1.3 资讯修改
-		3.1.4 资讯删除
+校园教育会议中心系统（Campus Educational Meeting Hub，CEMH）是一个全面的企业级多租户应用程序，旨在为教育机构提供会议管理、课程管理、用户管理和部门管理等功能。系统采用前后端分离架构，支持多租户隔离，为不同的机构提供独立的环境。
 
-# 4.Web端课程管理子系统（黄）
-	4.1 课程管理
-		4.1.1课程列表
-		4.1.2 新增课程
-		4.1.3 课程修改
-		4.1.4 课程删除
+<!-- PROJECT SHIELDS -->
 
-# 5.Web端会议管理子系统（澈）
-	5.1 会议管理
-		5.1.1 会议列表
-		5.1.2 新增会议
-		5.1.3 会议修改
-		5.1.4 会议删除
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
+
+<!-- PROJECT LOGO -->
+<br />
+
+<p align="center">
+  <a href="https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/">
+    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  </a>
+
+  <h3 align="center">"完美的"README模板</h3>
+  <p align="center">
+    快速开始项目！
+    <br />
+    <a href="https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining"><strong>探索本项目的文档 »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining">查看Demo</a>
+    ·
+    <a href="https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/issues">报告Bug</a>
+    ·
+    <a href="https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/issues">提出新特性</a>
+  </p>
+
+</p>
+
+
+ 本篇README.md面向开发者
+ 
+## 目录
+
+- [上手指南](#上手指南)
+  - [开发前的配置要求](#开发前的配置要求)
+  - [安装步骤](#安装步骤)
+- [文件目录说明](#文件目录说明)
+- [项目细节](#项目细节)
+- [部署](#部署)
+- [使用到的框架](#使用到的框架)
+- [贡献者](#贡献者)
+  - [如何参与该开源项目](#如何参与该开源项目)
+- [版本控制](#版本控制)
+- [鸣谢](#鸣谢)
+
+### 上手指南
+
+
+###### 开发前的配置要求
+
+1. xxxxx x.x.x
+2. xxxxx x.x.x
+
+###### **安装步骤**
+
+1. Get a free API Key at [https://example.com](https://example.com)
+2. Clone the repo
+
+```sh
+git clone https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining.git
+```
+
+### 文件目录说明
+
+```
+cemh-backend/
+├── src/main/
+│   ├── java/com/cemh/
+│   │   ├── common/      # 通用类和工具
+│   │   ├── config/      # 配置类
+│   │   ├── controller/  # 控制器
+│   │   ├── dto/         # 数据传输对象
+│   │   ├── entity/      # 实体类
+│   │   ├── handler/     # 处理器
+│   │   ├── mapper/      # MyBatis映射器
+│   │   ├── service/     # 服务接口
+│   │   │   └── impl/    # 服务实现
+│   │   ├── utils/       # 工具类
+│   │   └── vo/          # 视图对象
+│   └── resources/
+│       ├── mapper/      # MyBatis XML映射文件
+│       ├── application.properties # 应用配置
+│       └── application.yml       # YAML配置
+└── pom.xml              # Maven配置文件
+```
+
+
+
+### 项目细节 
+
+请阅读[ARCHITECTURE.md](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/master/ARCHITECTURE.md) 查阅为该项目的架构。
+
+### 部署
+
+#### 前端部署
+
+```bash
+# 进入前端目录
+cd cemh-frontend
+
+# 安装依赖
+npm install
+
+# 开发环境运行
+npm run dev
+
+# 生产环境构建
+npm run build
+```
+
+#### 后端部署
+
+```bash
+# 进入后端目录
+cd cemh-backend
+
+# 编译打包
+mvn clean package
+
+# 运行应用
+mvn spring-boot:run
+```
+
+### 使用到的框架
+
+- [xxxxxxx](https://getbootstrap.com)
+- [xxxxxxx](https://jquery.com)
+- [xxxxxxx](https://laravel.com)
+
+### 贡献者
+
+请阅读**CONTRIBUTING.md** 查阅为该项目做出贡献的开发者。
+测盟会开发小组全部成员
+ *您也可以在贡献者名单中参看所有参与该项目的开发者。*
+ 
+##### 如何参与该开源项目
+
+贡献使开源社区成为一个学习、激励和创造的绝佳场所。你所作的任何贡献都是**非常感谢**的。
+
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+
+
+### 版本控制
+
+该项目使用Git进行版本管理。您可以在repository参看当前可用版本。
+
+
+
+### 版权说明
+
+该项目签署了MIT 授权许可，详情请参阅 [LICENSE.txt](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/master/LICENSE.txt)
+
+### 鸣谢
+
+
+- [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
+- [Img Shields](https://shields.io)
+- [Choose an Open Source License](https://choosealicense.com)
+- [GitHub Pages](https://pages.github.com)
+- [Animate.css](https://daneden.github.io/animate.css)
+- [xxxxxxxxxxxxxx](https://connoratherton.com/loaders)
+
+<!-- links -->
+[your-project-path]:shaojintian/Best_README_template
+[contributors-shield]: https://img.shields.io/github/contributors/shaojintian/Best_README_template.svg?style=flat-square
+[contributors-url]: https://github.com/shaojintian/Best_README_template/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/shaojintian/Best_README_template.svg?style=flat-square
+[forks-url]: https://github.com/shaojintian/Best_README_template/network/members
+[stars-shield]: https://img.shields.io/github/stars/shaojintian/Best_README_template.svg?style=flat-square
+[stars-url]: https://github.com/shaojintian/Best_README_template/stargazers
+[issues-shield]: https://img.shields.io/github/issues/shaojintian/Best_README_template.svg?style=flat-square
+[issues-url]: https://img.shields.io/github/issues/shaojintian/Best_README_template.svg
+[license-shield]: https://img.shields.io/github/license/shaojintian/Best_README_template.svg?style=flat-square
+[license-url]: https://github.com/shaojintian/Best_README_template/blob/master/LICENSE.txt
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/shaojintian
+
+
+
+
