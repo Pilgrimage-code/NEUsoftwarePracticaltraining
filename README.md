@@ -103,7 +103,7 @@ cemh-backend/
 
 ### 开发的架构 
 
-请阅读[ARCHITECTURE.md](https://github.com/sPilgrimage-code/NEUsoftwarePracticaltraining/blob/master/ARCHITECTURE.md) 查阅为该项目的架构。
+请阅读[ARCHITECTURE.md](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/ARCHITECTURE.md) 查阅为该项目的架构。
 
 ### 部署
 
@@ -173,7 +173,7 @@ xxx@xxxx
 
 ### 版权说明
 
-该项目签署了MIT 授权许可，详情请参阅 [LICENSE.txt](https://github.com/shaojintian/Best_README_template/blob/master/LICENSE.txt)
+该项目签署了MIT 授权许可，详情请参阅 [LICENSE.txt](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/LICENSE.txt)
 
 ### 鸣谢
 
