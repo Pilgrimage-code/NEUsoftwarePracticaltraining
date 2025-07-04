@@ -21,7 +21,7 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">"完美的"README模板</h3>
+  <h3 align="center">"测盟汇"README</h3>
   <p align="center">
     快速开始项目！
     <br />
