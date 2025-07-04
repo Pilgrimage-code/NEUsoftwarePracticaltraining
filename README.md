@@ -184,7 +184,7 @@ mvn spring-boot:run
 [stars-shield]: https://img.shields.io/github/stars/Pilgrimage-code/NEUsoftwarePracticaltraining.svg?style=flat-square
 [stars-url]: https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/stargazers
 [issues-shield]: https://img.shields.io/github/issues/Pilgrimage-code/NEUsoftwarePracticaltraining.svg?style=flat-square
-[issues-url]: https://img.shields.io/github/issues/Pilgrimage-code/NEUsoftwarePracticaltraining.svg
+[issues-url]: https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/issues
 [license-shield]: https://img.shields.io/github/license/Pilgrimage-code/NEUsoftwarePracticaltraining.svg?style=flat-square
 [license-url]: https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/main/LICENSE.txt
 
