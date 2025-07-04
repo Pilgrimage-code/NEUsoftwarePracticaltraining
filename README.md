@@ -12,6 +12,7 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+(这里要把仓库设为公开才能识别数据)
 
 <!-- PROJECT LOGO -->
 <br />
