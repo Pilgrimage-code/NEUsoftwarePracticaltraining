@@ -109,9 +109,9 @@ public class SysDept extends BaseEntity {
 
     public SysDept() {
         this.status = 1; // 默认启用状态
-        this.parentId = null; // 修改：默认顶级部门，设置为null
         this.deptType = 1; // 默认普通部门
         this.sortOrder = 0; // 默认排序
+        this.deleted = 0; // 默认未删除
     }
 
     // Getter and Setter methods

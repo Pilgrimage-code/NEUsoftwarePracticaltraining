@@ -494,12 +494,21 @@ export default {
       return this.companies.map(c => ({
         id: c.id, 
         label: c.tenantName, 
-        children: c.departments?.map(d => ({
-          id: d.id, 
-          label: d.deptName, 
-          type: "department", 
-          data: d
-        })) || [], 
+        children: c.departments?.filter(d => {
+          // 确保使用数字进行比较
+          const tenantId = parseInt(c.id);
+          const parentId = parseInt(d.parentId);
+          return parentId === tenantId;
+        }).map(d => {
+          const childDepts = this.getChildDepartments(c.departments, d.id);
+          return {
+            id: d.id, 
+            label: d.deptName, 
+            type: "department", 
+            data: d,
+            children: childDepts.length > 0 ? childDepts : undefined
+          };
+        }) || [], 
         type: "company", 
         data: c
       }));
@@ -517,11 +526,32 @@ export default {
     this.loadTenants();
   },
   methods: {
+    // 添加方法：递归获取子部门
+    getChildDepartments(allDepts, parentId) {
+      if (!allDepts) return [];
+      // 确保使用数字进行比较
+      const parentIdNum = parseInt(parentId);
+      const childDepts = allDepts.filter(d => parseInt(d.parentId) === parentIdNum);
+      return childDepts.map(d => {
+        const children = this.getChildDepartments(allDepts, d.id);
+        return {
+          id: d.id,
+          label: d.deptName,
+          type: "department",
+          data: d,
+          children: children.length > 0 ? children : undefined
+        };
+      });
+    },
+    
     // 添加方法：获取当前公司的根部门ID
     getRootDeptId(tenantId) {
       const company = this.companies.find(c => c.id === tenantId);
       if (company && company.departments) {
-        const rootDept = company.departments.find(d => d.parentId === null || d.parentId === 0);
+        // 确保使用数字进行比较
+        const tenantIdNum = parseInt(tenantId);
+        // 只查找parentId等于租户ID的部门作为根部门
+        const rootDept = company.departments.find(d => parseInt(d.parentId) === tenantIdNum);
         return rootDept ? rootDept.id : null;
       }
       return null;
@@ -551,18 +581,27 @@ export default {
     
     // 加载指定企业的部门
     async loadDeptsForTenant(tenantId) {
+      if (!tenantId) {
+        console.error("加载部门数据失败: 租户ID不能为空");
+        ElMessage.error("加载部门数据失败: 租户ID不能为空");
+        return;
+      }
+      
       this.tableLoading = true;
       try {
         const res = await getDeptsByTenant(tenantId);
         if (res.code === 200) {
-          const tenant = this.companies.find(c => c.id === tenantId);
+          const tenant = this.companies.find(c => parseInt(c.id) === parseInt(tenantId));
           if (tenant) {
-            tenant.departments = res.data;
+            tenant.departments = res.data || [];
           }
+        } else {
+          console.error("加载部门数据失败:", res.message);
+          ElMessage.error(`加载部门数据失败: ${res.message}`);
         }
       } catch (error) {
         console.error("加载部门数据失败:", error);
-        ElMessage.error("加载部门数据失败");
+        ElMessage.error("加载部门数据失败: " + (error.message || "未知错误"));
       } finally {
         this.tableLoading = false;
       }
@@ -695,8 +734,9 @@ export default {
           parentId: dept.parentId  // 保留原始parentId
         };
       } else {
-        // 关键修复：获取当前公司的根部门ID
-        const rootDeptId = this.getRootDeptId(this.current.data.id);
+        // 新建部门时，如果当前是company视图，parentId设置为租户ID
+        // 如果当前是department视图，parentId设置为当前部门ID
+        const tenantId = this.current.type === 'company' ? this.current.data.id : this.current.data.tenantId;
         
         this.deptDialog.form = { 
           deptCode: '',
@@ -706,8 +746,8 @@ export default {
           address: "",
           status: 1,
           remark: "",
-          tenantId: this.current.data.id,
-          parentId: rootDeptId  // 设置为根部门ID
+          tenantId: tenantId,
+          parentId: tenantId  // 对于新部门，直接使用租户ID作为parentId
         };
       }
       
@@ -722,6 +762,7 @@ export default {
       this.$refs.deptForm.validate(async valid => {
         if (valid) {
           try {
+            console.log('保存部门表单数据:', this.deptDialog.form);
             let result;
             if (this.deptDialog.isEdit) {
               result = await updateDept(this.deptDialog.form.id, this.deptDialog.form);
@@ -734,11 +775,13 @@ export default {
               await this.loadDeptsForTenant(this.deptDialog.form.tenantId);
               this.deptDialog.visible = false;
             } else {
+              console.error('保存部门失败:', result);
               ElMessage.error(result.message || "操作失败");
             }
           } catch (error) {
             console.error("保存部门失败:", error);
             if (error.response && error.response.data) {
+              console.error('错误详情:', error.response.data);
               ElMessage.error(error.response.data.message || "操作失败");
             } else {
               ElMessage.error("操作失败，请检查数据格式");

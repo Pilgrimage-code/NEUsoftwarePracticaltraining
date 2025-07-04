@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cemh.mapper.SysDeptMapper">
+    <!-- 根据租户ID查询部门列表，按照层级排序 -->
     <select id="selectByTenantId" resultType="com.cemh.entity.SysDept">
-        SELECT * FROM sys_dept
-        <where>
-            <if test="tenantId != null">
-                tenant_id = #{tenantId}
-            </if>
-        </where>
-        ORDER BY parent_id ASC, id ASC
+        SELECT d.*, 
+               t.tenant_name AS tenant_name,
+               CASE 
+                   WHEN d.parent_id = t.id THEN t.tenant_name
+                   WHEN p.id IS NOT NULL THEN p.dept_name
+                   ELSE NULL 
+               END AS parent_name
+        FROM sys_dept d
+        LEFT JOIN sys_tenant t ON d.tenant_id = t.id
+        LEFT JOIN sys_dept p ON d.parent_id = p.id AND d.parent_id != t.id
+        WHERE d.tenant_id = #{tenantId}
+        AND d.deleted = 0
+        ORDER BY 
+            CASE WHEN d.parent_id = #{tenantId} THEN 0 ELSE 1 END,
+            d.sort_order,
+            d.id ASC
     </select>
 </mapper> 

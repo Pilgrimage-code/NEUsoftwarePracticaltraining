@@ -470,8 +470,19 @@
     </el-dialog>
 
     <!-- 续费管理弹窗 -->
-    <el-dialog v-model="renewDialogVisible" title="续费管理" width="400px">
+    <el-dialog v-model="renewDialogVisible" :title="renewTenantId ? '续费管理' : '批量续费管理'" width="400px">
       <el-form>
+        <div v-if="!renewTenantId" class="batch-renew-info">
+          <el-alert
+            title="批量续费"
+            type="info"
+            :closable="false"
+            description="您正在对多个租户进行批量续费操作，所有选中的租户将增加相同的有效期时间。"
+          />
+          <div class="selected-count">
+            已选择 <span class="highlight">{{ selectedTenants.length }}</span> 个租户
+          </div>
+        </div>
         <el-form-item label="年">
           <el-input-number v-model="renewForm.years" :min="0" :controls="false" placeholder="可为空" style="width: 100%" />
         </el-form-item>
@@ -493,7 +504,7 @@
 <script>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getTenantList as fetchTenantList, createTenant, updateTenant, deleteTenant, realDeleteTenant, renewTenant, disableTenant, enableTenant } from '@/api/tenant'
+import { getTenantList as fetchTenantList, createTenant, updateTenant, deleteTenant, realDeleteTenant, renewTenant, disableTenant, enableTenant, batchRenewTenants, exportTenants } from '@/api/tenant'
 import request from '@/utils/request'
 
 export default {
@@ -728,7 +739,15 @@ export default {
 
     // 批量续费
     const handleBatchRenew = () => {
-      ElMessage.info('批量续费功能开发中...')
+      if (selectedTenants.value.length === 0) {
+        ElMessage.warning('请选择要续费的租户')
+        return
+      }
+      
+      renewForm.years = null
+      renewForm.months = null
+      renewForm.days = null
+      renewDialogVisible.value = true
     }
 
     // 批量通知
@@ -738,7 +757,26 @@ export default {
 
     // 导出数据
     const handleExport = () => {
-      ElMessage.success('数据导出成功')
+      try {
+        // 构建查询参数
+        const params = {};
+        if (searchForm.name) params.name = searchForm.name;
+        if (searchForm.code) params.code = searchForm.code;
+        if (searchForm.status !== null && searchForm.status !== undefined) params.status = searchForm.status;
+        if (searchForm.packageType !== null && searchForm.packageType !== undefined) params.packageType = searchForm.packageType;
+        
+        // 使用URLSearchParams构建查询字符串
+        const queryString = new URLSearchParams(params).toString();
+        
+        // 直接使用完整的URL路径
+        const url = `http://localhost:8080/api/tenants/export?${queryString}`;
+        window.open(url, '_blank');
+        
+        ElMessage.success('导出请求已发送');
+      } catch (error) {
+        console.error('导出租户数据异常:', error);
+        ElMessage.error('导出租户数据异常');
+      }
     }
 
     // logo上传成功
@@ -994,15 +1032,31 @@ export default {
         ElMessage.error('年/月/日不能全部为空')
         return
       }
+      
       try {
-        await renewTenant({
-          tenantId: renewTenantId.value,
-          years: renewForm.years,
-          months: renewForm.months,
-          days: renewForm.days
-        })
-        ElMessage.success('续费成功')
+        // 如果有renewTenantId，说明是单个租户续费
+        if (renewTenantId.value) {
+          await renewTenant({
+            tenantId: renewTenantId.value,
+            years: renewForm.years,
+            months: renewForm.months,
+            days: renewForm.days
+          })
+          ElMessage.success('续费成功')
+        } else {
+          // 批量续费
+          const tenantIds = selectedTenants.value.map(tenant => tenant.id)
+          await batchRenewTenants({
+            tenantIds: tenantIds,
+            years: renewForm.years,
+            months: renewForm.months,
+            days: renewForm.days
+          })
+          ElMessage.success(`已成功续费 ${tenantIds.length} 个租户`)
+        }
+        
         renewDialogVisible.value = false
+        renewTenantId.value = null
         getTenantList()
       } catch (e) {
         ElMessage.error('续费失败')
@@ -1335,6 +1389,22 @@ export default {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+.batch-renew-info {
+  margin-bottom: 20px;
+}
+
+.selected-count {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.selected-count .highlight {
+  color: #409EFF;
+  font-weight: bold;
+  font-size: 16px;
 }
 </style>
 

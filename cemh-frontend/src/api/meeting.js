@@ -53,10 +53,30 @@ export const meetingApi = {
   // 获取会议列表
   getMeetingList(queryDTO, tenantId) {
     const headers = tenantId ? { 'X-Tenant-Id': tenantId } : {};
+    
+    // 提取日期参数
+    const { startDate, endDate, ...restParams } = queryDTO;
+    
+    // 如果有日期参数，使用GET请求和URL参数
+    if (startDate && endDate) {
+      console.log('使用日期筛选:', startDate, endDate);
+      return request({
+        url: '/api/meeting/list',
+        method: 'get',
+        params: {
+          ...restParams,
+          startDate,
+          endDate
+        },
+        headers
+      });
+    }
+    
+    // 没有日期参数时，使用POST请求
     return request({
       url: '/api/meeting/list',
       method: 'post',
-      data: queryDTO,
+      data: restParams,
       headers
     });
   },

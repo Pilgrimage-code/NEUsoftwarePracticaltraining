@@ -11,9 +11,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * 会议管理控制器
@@ -64,6 +68,48 @@ public class MeetingController {
     public Result<PageResult<MeetingVO>> getMeetingList(@RequestBody MeetingQueryDTO queryDTO,
                                                         @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
         queryDTO.setTenantId(tenantId);
+        return meetingService.getMeetingList(queryDTO);
+    }
+    
+    @Operation(summary = "获取会议列表(GET)", description = "使用GET方法分页查询会议列表，支持日期筛选")
+    @GetMapping("/list")
+    public Result<PageResult<MeetingVO>> getMeetingListByGet(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
+        
+        MeetingQueryDTO queryDTO = new MeetingQueryDTO();
+        queryDTO.setTitle(title);
+        queryDTO.setTags(tags);
+        
+        // 处理状态参数
+        if (status != null) {
+            try {
+                queryDTO.setStatus(status);
+            } catch (NumberFormatException e) {
+                // 忽略无效的状态值
+            }
+        }
+        
+        // 处理日期参数
+        if (startDate != null) {
+            LocalDateTime startDateTime = LocalDateTime.of(startDate, LocalTime.MIN);
+            queryDTO.setStartTimeBegin(startDateTime);
+        }
+        if (endDate != null) {
+            LocalDateTime endDateTime = LocalDateTime.of(endDate, LocalTime.MAX);
+            queryDTO.setStartTimeEnd(endDateTime);
+        }
+        
+        queryDTO.setPage(page);
+        queryDTO.setSize(size);
+        queryDTO.setTenantId(tenantId);
+        
         return meetingService.getMeetingList(queryDTO);
     }
     

@@ -120,5 +120,18 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     int countByEmail(@Param("email") String email, 
                     @Param("tenantId") Long tenantId, 
                     @Param("excludeId") Long excludeId);
+    
+    /**
+     * 获取最大用户ID
+     * @return 最大用户ID
+     */
+    Long selectMaxUserId();
+    
+    /**
+     * 物理删除用户
+     * @param id 用户ID
+     * @return 影响行数
+     */
+    int physicalDeleteById(@Param("id") Long id);
 }
 

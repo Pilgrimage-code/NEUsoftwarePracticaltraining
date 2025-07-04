@@ -123,5 +123,12 @@ public interface MeetingMapper extends BaseMapper<Meeting> {
      * @return 会议实体
      */
     Meeting getById(Long id);
+    
+    /**
+     * 获取会议表中当前最大的ID值
+     * @return 当前最大ID，如果表为空则返回1
+     */
+    @Select("SELECT COALESCE(MAX(id), 1) FROM meeting")
+    Long getMaxId();
 }
 

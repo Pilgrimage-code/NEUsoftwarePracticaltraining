@@ -52,7 +52,6 @@ public class SysUser extends BaseEntity {
     @Schema(description = "密码")
     @TableField("password")
     @JsonIgnore
-    @NotBlank(message = "密码不能为空")
     private String password;
 
     @Schema(description = "手机号码")

@@ -15,9 +15,7 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
 
     @Override
     public List<SysDept> getByTenantId(Long tenantId) {
-        return this.list(new QueryWrapper<SysDept>()
-                .eq("tenant_id", tenantId)
-                .eq("deleted", 0));
+        return this.baseMapper.selectByTenantId(tenantId);
     }
 
     @Override
@@ -30,6 +28,9 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
 
     @Override
     public boolean hasChildren(Long parentId) {
+        if (parentId == null) {
+            return false; // 如果parentId为null，则没有子部门
+        }
         return this.count(new QueryWrapper<SysDept>()
                 .eq("parent_id", parentId)
                 .eq("deleted", 0)) > 0;

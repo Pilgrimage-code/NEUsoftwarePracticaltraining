@@ -20,6 +20,11 @@ public class MeetingQueryDTO {
     private String type;
     
     /**
+     * 会议标签：tech-技术分享，product-产品讨论，training-培训学习，review-项目评审，team-团队建设
+     */
+    private String tags;
+    
+    /**
      * 会议状态：draft-草稿，published-已发布，ongoing-进行中，completed-已结束，cancelled-已取消
      */
     private String status;
@@ -93,6 +98,14 @@ public class MeetingQueryDTO {
 
     public void setType(String type) {
         this.type = type;
+    }
+    
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 
     public String getStatus() {

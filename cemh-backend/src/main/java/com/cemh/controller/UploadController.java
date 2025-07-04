@@ -113,20 +113,40 @@ public class UploadController {
             return Result.error("文件大小不能超过50MB");
         }
         try {
-            logger.info("上传视频: {}, 大小: {}", file.getOriginalFilename(), file.getSize());
-            String filePath = FileUtils.saveFile(file, "video");
-            String url = buildFullUrl(filePath);
+            logger.info("上传视频: {}, 大小: {}, 类型: {}", file.getOriginalFilename(), file.getSize(), contentType);
             
-            // 提取文件名
-            String filename = filePath.substring(filePath.lastIndexOf('/') + 1);
+            // 创建上传目录
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+            
+            // 生成文件名 - 使用统一格式：YYYYMMDD_UUID.ext
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String dateStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String filename = dateStr + "_" + java.util.UUID.randomUUID().toString() + extension;
+            
+            // 保存文件 - 使用统一的文件路径结构
+            File destFile = new File(uploadDir, filename);
+            file.transferTo(destFile);
+            
+            // 构建URL路径 - 统一格式为 /uploads/YYYYMMDD_UUID.ext
+            String filePath = "/uploads/" + filename;
+            String fullUrl = buildFullUrl(filePath);
+            
+            logger.info("视频已保存: {}", destFile.getAbsolutePath());
+            logger.info("访问URL: {}", fullUrl);
             
             Map<String, Object> result = new HashMap<>();
             result.put("filename", filename);
             result.put("originalName", file.getOriginalFilename());
             result.put("size", file.getSize());
-            result.put("url", url);
+            result.put("url", fullUrl);
             
-            logger.info("视频已上传: {}", url);
             return Result.success(result);
         } catch (IOException e) {
             logger.error("上传视频失败", e);

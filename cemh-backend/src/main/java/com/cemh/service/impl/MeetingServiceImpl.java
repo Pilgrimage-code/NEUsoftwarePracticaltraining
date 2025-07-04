@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,13 @@ public class MeetingServiceImpl implements MeetingService {
     public Result<Void> createMeeting(MeetingDTO meetingDTO) {
         try {
             // 数据验证
+            if (meetingDTO.getStartTime() == null || meetingDTO.getEndTime() == null) {
+                log.error("创建会议错误：开始时间或结束时间为空");
+                return Result.error("开始时间和结束时间不能为空");
+            }
+            
             if (meetingDTO.getStartTime().isAfter(meetingDTO.getEndTime())) {
+                log.error("创建会议错误：开始时间晚于结束时间");
                 return Result.error("开始时间不能晚于结束时间");
             }
             
@@ -53,12 +60,33 @@ public class MeetingServiceImpl implements MeetingService {
             Meeting meeting = new Meeting();
             BeanUtils.copyProperties(meetingDTO, meeting);
             
+            // 确保开始时间和结束时间被设置
+            LocalDateTime startTime = LocalDateTime.ofInstant(
+                meetingDTO.getStartTime().toInstant(), 
+                ZoneId.systemDefault()
+            );
+            LocalDateTime endTime = LocalDateTime.ofInstant(
+                meetingDTO.getEndTime().toInstant(), 
+                ZoneId.systemDefault()
+            );
+            
+            meeting.setStartTime(startTime);
+            meeting.setEndTime(endTime);
+            
             // 设置默认值
             meeting.setStatus(0); // 草稿状态
             meeting.setCurrentParticipants(0);
             meeting.setIsTop(0);
             meeting.setCreateTime(LocalDateTime.now());
             meeting.setUpdateTime(LocalDateTime.now());
+            
+            // 获取当前最大ID并设置新会议ID为最大ID+1
+            Long maxId = meetingMapper.getMaxId();
+            Long newId = maxId + 1;
+            meeting.setId(newId);
+            
+            log.info("创建会议 - 设置ID为: {}, 开始时间: {}, 结束时间: {}", 
+                    newId, startTime, endTime);
 
             // 保存到数据库
             int result1 = meetingMapper.insert(meeting);
@@ -75,9 +103,11 @@ public class MeetingServiceImpl implements MeetingService {
             if (result1 > 0) {
                 return Result.success();
             } else {
+                log.error("创建会议失败：数据库插入失败");
                 return Result.error("创建会议失败");
             }
         } catch (Exception e) {
+            log.error("创建会议异常", e);
             return Result.error("创建会议异常：" + e.getMessage());
         }
     }
@@ -88,25 +118,48 @@ public class MeetingServiceImpl implements MeetingService {
             // 检查会议是否存在
             Meeting existingMeeting = meetingMapper.selectById(meetingDTO.getId());
             if (existingMeeting == null) {
+                log.error("更新会议错误：会议ID {} 不存在", meetingDTO.getId());
                 return Result.error("会议不存在");
             }
             
             // 数据验证
+            if (meetingDTO.getStartTime() == null || meetingDTO.getEndTime() == null) {
+                log.error("更新会议错误：开始时间或结束时间为空");
+                return Result.error("开始时间和结束时间不能为空");
+            }
+            
             if (meetingDTO.getStartTime().isAfter(meetingDTO.getEndTime())) {
+                log.error("更新会议错误：开始时间晚于结束时间");
                 return Result.error("开始时间不能晚于结束时间");
             }
             
             // DTO转实体
             Meeting meeting = new Meeting();
+            meeting.setId(meetingDTO.getId());
             meeting.setUpdateTime(LocalDateTime.now());
             BeanUtils.copyProperties(meetingDTO, meeting);
             
+            // 确保开始时间和结束时间被正确设置
+            LocalDateTime startTime = LocalDateTime.ofInstant(
+                meetingDTO.getStartTime().toInstant(), 
+                ZoneId.systemDefault()
+            );
+            LocalDateTime endTime = LocalDateTime.ofInstant(
+                meetingDTO.getEndTime().toInstant(), 
+                ZoneId.systemDefault()
+            );
+            
+            meeting.setStartTime(startTime);
+            meeting.setEndTime(endTime);
+            
+            log.info("更新会议 - ID: {}, 开始时间: {}, 结束时间: {}", 
+                    meeting.getId(), startTime, endTime);
+            
             // 更新到数据库
-
             meetingMaterialMapper.deleteByMeetingId(meeting.getId());
 
             List<MeetingMaterial> materials = meetingDTO.getMaterials();
-            if (materials!= null &&!materials.isEmpty()) {
+            if (materials != null && !materials.isEmpty()) {
                 for (MeetingMaterial material : materials) {
                     material.setMeetingId(meeting.getId());
                     // 保存材料到数据库
@@ -118,9 +171,11 @@ public class MeetingServiceImpl implements MeetingService {
             if (result > 0) {
                 return Result.success();
             } else {
+                log.error("更新会议失败：数据库更新失败");
                 return Result.error("更新会议失败");
             }
         } catch (Exception e) {
+            log.error("更新会议异常", e);
             return Result.error("更新会议异常：" + e.getMessage());
         }
     }
@@ -141,8 +196,10 @@ public class MeetingServiceImpl implements MeetingService {
             
             // 删除会议
             int result1 = meetingMapper.deleteById(id);
-            int result2 = meetingMaterialMapper.deleteByMeetingId(id);
-            if (result1 > 0 && result2 > 0) {
+            // 删除会议材料，即使没有材料也返回成功
+            meetingMaterialMapper.deleteByMeetingId(id);
+            
+            if (result1 > 0) {
                 return Result.success();
             } else {
                 return Result.error("删除会议失败");
@@ -192,6 +249,11 @@ public class MeetingServiceImpl implements MeetingService {
             // 会议类型
             if (queryDTO.getType() != null) {
                 queryWrapper.eq(Meeting::getType, queryDTO.getType());
+            }
+            
+            // 会议标签
+            if (queryDTO.getTags() != null && !queryDTO.getTags().isEmpty()) {
+                queryWrapper.eq(Meeting::getTags, queryDTO.getTags());
             }
             
             // 会议状态
@@ -393,13 +455,13 @@ public class MeetingServiceImpl implements MeetingService {
             return Result.error("报名异常：" + e.getMessage());
         }
     }
-
+    
     /**
      * 实体转VO
      */
     private MeetingVO convertToVO(Meeting meeting) {
         try {
-            MeetingVO vo = new MeetingVO();
+        MeetingVO vo = new MeetingVO();
             
             // 手动复制基本属性，避免日期时间类型转换问题
             vo.setId(meeting.getId());
@@ -427,44 +489,44 @@ public class MeetingServiceImpl implements MeetingService {
             vo.setEndTime(meeting.getEndTime());
             vo.setRegistrationDeadline(meeting.getRegistrationDeadline());
             vo.setMaterials(meeting.getMaterials());
-            
-            // 设置类型文本
+        
+        // 设置类型文本
             if (meeting.getType() != null) {
-                switch (meeting.getType()) {
-                    case 1:
-                        vo.setTypeText("线上会议");
-                        break;
-                    case 2:
-                        vo.setTypeText("线下会议");
-                        break;
-                    case 3:
-                        vo.setTypeText("混合会议");
-                        break;
+        switch (meeting.getType()) {
+            case 1:
+                vo.setTypeText("线上会议");
+                break;
+            case 2:
+                vo.setTypeText("线下会议");
+                break;
+            case 3:
+                vo.setTypeText("混合会议");
+                break;
                     default:
                         vo.setTypeText("未知类型");
                 }
             } else {
                 vo.setTypeText("未知类型");
-            }
+        }
 
-            // 设置状态文本
+        // 设置状态文本
             if (meeting.getStatus() != null) {
-                switch (meeting.getStatus()) {
-                    case 0:
-                        vo.setStatusText("草稿");
-                        break;
-                    case 1:
-                        vo.setStatusText("已发布");
-                        break;
-                    case 2:
-                        vo.setStatusText("已取消");
-                        break;
-                    case 3:
-                        vo.setStatusText("已结束");
-                        break;
-                    case 4:
-                        vo.setStatusText("进行中");
-                        break;
+        switch (meeting.getStatus()) {
+            case 0:
+                vo.setStatusText("草稿");
+                break;
+            case 1:
+                vo.setStatusText("已发布");
+                break;
+            case 2:
+                vo.setStatusText("已取消");
+                break;
+            case 3:
+                vo.setStatusText("已结束");
+                break;
+            case 4:
+                vo.setStatusText("进行中");
+                break;
                     case 6:
                         vo.setStatusText("已取消");
                         break;
@@ -473,13 +535,13 @@ public class MeetingServiceImpl implements MeetingService {
                 }
             } else {
                 vo.setStatusText("未知状态");
-            }
-            
-            // 设置其他计算字段
+        }
+        
+        // 设置其他计算字段
             vo.setCanRegister(meeting.getStatus() != null && meeting.getStatus() == 2); // 报名中状态可以报名
-            vo.setHasRegistered(false); // 需要根据用户查询
-            
-            return vo;
+        vo.setHasRegistered(false); // 需要根据用户查询
+        
+        return vo;
         } catch (Exception e) {
             // 记录异常，便于排查
             log.error("会议实体转VO异常: {}, 会议ID: {}", e.getMessage(), meeting != null ? meeting.getId() : "null", e);

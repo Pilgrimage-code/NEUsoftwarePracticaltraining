@@ -546,6 +546,7 @@ export default {
       if (!url) return '';
 
       try {
+        console.log('原始视频URL:', url);
         // 移除可能的空格和特殊字符
         url = url.trim();
         
@@ -555,7 +556,7 @@ export default {
           return 'https://www.w3schools.com/html/mov_bbb.mp4'; // 使用公共可用的测试视频
         }
         
-        // 如果URL已经是完整格式，直接返回
+        // 如果URL已经是完整格式（http或https开头），直接返回
         if (url.match(/^https?:\/\//)) {
           console.log('视频URL已经是完整URL:', url);
           return url;
@@ -563,37 +564,41 @@ export default {
         
         const baseUrl = import.meta.env.VITE_APP_BASE_API || 'http://localhost:8080';
         
-        // 处理新格式的视频URL: /uploads/YYYYMMDD_UUID.mp4
-        if (url.match(/^\/uploads\/\d{8}_[a-f0-9-]+\.\w+$/)) {
+        // 处理相对路径，确保斜杠正确
+        if (!url.startsWith('/')) {
+          url = '/' + url;
+        }
+        
+        // 1. 处理类似 /uploads/20250702_UUID.mp4 格式的URL
+        if (url.match(/\/uploads\/\d{8}_[a-f0-9-]+\.\w+$/)) {
           const fullUrl = `${baseUrl}${url}`;
-          console.log('处理新格式视频URL:', fullUrl);
+          console.log('处理日期格式视频URL:', fullUrl);
           return fullUrl;
         }
         
-        // 处理相对路径
-        if (url.startsWith('/')) {
-          // 如果是以/开头的绝对路径
+        // 2. 处理类似 /uploads/videos/2025/07/03/UUID.mp4 格式的URL
+        if (url.match(/\/uploads\/videos\/\d{4}\/\d{2}\/\d{2}\/[a-f0-9-]+\.\w+$/)) {
           const fullUrl = `${baseUrl}${url}`;
-          console.log('处理以/开头的路径:', fullUrl);
+          console.log('处理目录结构视频URL:', fullUrl);
           return fullUrl;
         }
         
-        // 处理纯文件名，假设在uploads目录下
-        if (!url.includes('/')) {
-          const fullUrl = `${baseUrl}/uploads/${url}`;
+        // 3. 处理纯文件名，如 UUID.mp4
+        if (!url.includes('/') || url === `/${url.split('/').pop()}`) {
+          const fullUrl = `${baseUrl}/uploads/${url.replace(/^\//, '')}`;
           console.log('处理纯文件名:', fullUrl);
           return fullUrl;
         }
         
-        // 处理以uploads开头的相对路径
-        if (url.startsWith('uploads/')) {
-          const fullUrl = `${baseUrl}/${url}`;
-          console.log('处理以uploads/开头的路径:', fullUrl);
+        // 4. 处理以 /uploads 开头但不符合上述格式的URL
+        if (url.startsWith('/uploads/')) {
+          const fullUrl = `${baseUrl}${url}`;
+          console.log('处理其他uploads格式URL:', fullUrl);
           return fullUrl;
         }
         
-        // 最后处理其他格式的路径
-        const fullUrl = `${baseUrl}/uploads/${url}`;
+        // 5. 最后处理其他格式的路径，添加基本前缀
+        const fullUrl = `${baseUrl}${url}`;
         console.log('处理其他格式路径:', fullUrl);
         return fullUrl;
       } catch (e) {
@@ -609,7 +614,8 @@ export default {
       
       // 确保当前视频URL是有效的
       if (currentVideo.value) {
-        console.log('当前视频URL:', formatVideoUrl(currentVideo.value));
+        const formattedUrl = formatVideoUrl(currentVideo.value);
+        console.log('当前视频URL:', formattedUrl);
       }
       
       // 给视频元素一点时间来初始化并加载
@@ -619,16 +625,39 @@ export default {
           
           // 设置视频错误处理
           videoPlayer.value.onerror = function(e) {
-            console.log('视频加载出错，但不显示错误消息:', e);
-            // 不显示错误消息
+            console.error('视频加载出错:', e);
+            
+            // 这次我们显示错误消息给用户，这样他们知道发生了什么
+            ElMessage.error({
+              message: '视频加载失败，请稍后再试',
+              duration: 3000,
+              showClose: true
+            });
+            
+            // 尝试使用备用方法重新加载视频
+            setTimeout(() => {
+              try {
+                console.log('尝试重新加载视频...');
+                // 再次获取格式化的URL
+                const formattedUrl = formatVideoUrl(currentVideo.value);
+                videoPlayer.value.src = formattedUrl;
+                videoPlayer.value.load();
+              } catch (err) {
+                console.error('重新加载视频失败:', err);
+              }
+            }, 1000);
           };
           
-          // 重新设置src以确保视频被正确加载
+          // 强制重新设置src以确保视频被正确加载
           try {
+            const formattedUrl = formatVideoUrl(currentVideo.value);
+            videoPlayer.value.src = formattedUrl;
             videoPlayer.value.load();
             
             // 等待视频加载完成
             videoPlayer.value.onloadedmetadata = function() {
+              console.log('视频元数据已加载，时长:', videoPlayer.value.duration);
+              
               // 尝试播放视频
               try {
                 const playPromise = videoPlayer.value.play();
@@ -638,16 +667,17 @@ export default {
                       console.log('视频开始播放');
                     })
                     .catch(error => {
-                      console.log('视频自动播放失败，需要用户手动点击播放');
-                      // 不显示错误消息
+                      console.log('视频自动播放失败，需要用户手动点击播放:', error);
+                      // 显示提示消息
+                      ElMessage.info('请点击播放按钮开始学习');
                     });
                 }
               } catch (e) {
-                console.log('播放视频时出错，但不显示错误消息');
+                console.error('播放视频时出错:', e);
               }
             };
           } catch (e) {
-            console.log('加载视频时出错，但不显示错误消息');
+            console.error('加载视频时出错:', e);
           }
         }
       });

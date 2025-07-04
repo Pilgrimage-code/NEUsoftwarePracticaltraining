@@ -156,7 +156,27 @@ public class CourseController {
     @PostMapping("/chapter")
     public Result<Void> createChapter(@Valid @RequestBody CourseChapter chapter) {
         try {
-            logger.info("创建章节，课程ID: {}, 章节名称: {}", chapter.getCourseId(), chapter.getChapterName());
+            logger.info("创建章节，课程ID: {}, 章节名称: {}, 视频URL: {}", 
+                    chapter.getCourseId(), 
+                    chapter.getChapterName(),
+                    chapter.getVideoUrl());
+                    
+            // 处理视频URL格式，确保它符合预期格式
+            if (chapter.getVideoUrl() != null && !chapter.getVideoUrl().isEmpty()) {
+                String videoUrl = chapter.getVideoUrl();
+                logger.info("原始视频URL: {}", videoUrl);
+                
+                // 如果是完整URL，提取文件名并统一格式
+                if (videoUrl.startsWith("http")) {
+                    String filename = videoUrl.substring(videoUrl.lastIndexOf("/") + 1);
+                    // 检查是否是日期格式文件名 (20250703_xxx.mp4)
+                    if (filename.matches("\\d{8}_.*\\.\\w+")) {
+                        chapter.setVideoUrl("/uploads/" + filename);
+                    }
+                    logger.info("处理后的视频URL: {}", chapter.getVideoUrl());
+                }
+            }
+            
             return courseService.createChapter(chapter);
         } catch (Exception e) {
             logger.error("创建章节失败", e);

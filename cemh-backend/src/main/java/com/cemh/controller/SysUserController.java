@@ -8,6 +8,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -19,6 +23,8 @@ import com.cemh.service.SysTenantService;
 import com.cemh.service.SysDeptService;
 import com.cemh.service.CaptchaService;
 import com.cemh.dto.RegisterUserDTO;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * 用户管理控制器
@@ -80,7 +86,7 @@ public class SysUserController {
     @Operation(summary = "更新用户")
     @PutMapping("/{id}")
     public Result<Void> updateUser(@Parameter(description = "用户ID") @PathVariable Long id,
-                                   @Valid @RequestBody SysUser user,
+                                   @RequestBody SysUser user,
                                    @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
                                    @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         user.setId(id);
@@ -96,31 +102,46 @@ public class SysUserController {
     @Operation(summary = "删除用户")
     @DeleteMapping("/{id}")
     public Result<Void> deleteUser(@Parameter(description = "用户ID") @PathVariable Long id,
-                                   @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
-        return sysUserService.deleteUser(id, tenantId);
+                                   @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                   @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        return sysUserService.deleteUser(id, userId);
     }
 
     @Operation(summary = "批量删除用户")
     @DeleteMapping("/batch")
     public Result<Void> batchDeleteUsers(@RequestBody List<Long> ids,
-                                         @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
-        return sysUserService.batchDeleteUsers(ids, tenantId);
+                                         @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                         @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        return sysUserService.batchDeleteUsers(ids, userId);
     }
 
     @Operation(summary = "更新用户状态")
     @PutMapping("/{id}/status")
     public Result<Void> updateUserStatus(@Parameter(description = "用户ID") @PathVariable Long id,
-                                         @Parameter(description = "状态") @RequestParam Integer status,
-                                         @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
-        return sysUserService.updateUserStatus(id, status, tenantId);
+                                         @RequestBody(required = false) java.util.Map<String, Integer> body,
+                                         @RequestParam(required = false) Integer status,
+                                         @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                         @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        // 支持两种方式：RequestParam或RequestBody
+        Integer finalStatus = status;
+        if (finalStatus == null && body != null) {
+            finalStatus = body.get("status");
+        }
+        
+        if (finalStatus == null) {
+            return Result.error("状态不能为空");
+        }
+        
+        return sysUserService.updateUserStatus(id, finalStatus, userId);
     }
 
     @Operation(summary = "重置密码")
     @PutMapping("/{id}/password/reset")
     public Result<Void> resetPassword(@Parameter(description = "用户ID") @PathVariable Long id,
-                                      @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
+                                      @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+                                      @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         // 重置为默认密码123456
-        return sysUserService.resetPassword(id, "123456", tenantId);
+        return sysUserService.resetPassword(id, "123456", userId);
     }
 
     @Operation(summary = "修改密码")
@@ -147,13 +168,41 @@ public class SysUserController {
         return sysUserService.assignUserRoles(id, roleIds, tenantId);
     }
 
-    @Operation(summary = "导出用户列表")
+    @Operation(summary = "导出用户数据")
     @GetMapping("/export")
-    public Result<String> exportUsers(@Parameter(description = "用户名") @RequestParam(required = false) String username,
+    public void exportUsers(@Parameter(description = "用户名") @RequestParam(required = false) String username,
                                       @Parameter(description = "昵称") @RequestParam(required = false) String nickname,
                                       @Parameter(description = "部门ID") @RequestParam(required = false) Long deptId,
-                                      @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId) {
-        return sysUserService.exportUsers(username, nickname, deptId, tenantId);
+                            @Parameter(description = "租户ID") @RequestParam(required = false) Long tenantId,
+                            HttpServletRequest request,
+                            HttpServletResponse response) {
+        try {
+            // 如果未指定租户ID，则使用当前用户的租户ID
+            if (tenantId == null) {
+                String userIdStr = request.getHeader("X-User-Id");
+                if (userIdStr != null && !userIdStr.isEmpty()) {
+                    try {
+                        Long userId = Long.parseLong(userIdStr);
+                        SysUser currentUser = sysUserService.getUserById(userId, null).getData();
+                        if (currentUser != null) {
+                            tenantId = currentUser.getTenantId();
+                        }
+                    } catch (Exception e) {
+                        // 忽略解析错误
+                    }
+                }
+            }
+            
+            // 设置默认租户ID为1，避免空值
+            if (tenantId == null) {
+                tenantId = 1L;
+            }
+            
+            sysUserService.exportUsers(username, nickname, deptId, tenantId, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 异常已在Service层处理
+        }
     }
 
     @Operation(summary = "获取部门下的用户")

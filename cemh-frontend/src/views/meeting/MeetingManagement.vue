@@ -28,15 +28,17 @@
         
         <el-form-item label="会议类型">
           <el-select
-            v-model="searchForm.type"
+            v-model="searchForm.tags"
             placeholder="请选择会议类型"
             clearable
             style="width: 150px"
           >
-            <el-option label="技术交流" :value="1" />
-            <el-option label="产品发布" :value="2" />
-            <el-option label="培训课程" :value="3" />
-            <el-option label="其他" :value="4" />
+            <el-option label="技术分享" value="tech" />
+            <el-option label="产品讨论" value="product" />
+            <el-option label="培训学习" value="training" />
+            <el-option label="项目评审" value="review" />
+            <el-option label="团队建设" value="team" />
+            <el-option label="其他" value="" />
           </el-select>
         </el-form-item>
         
@@ -60,6 +62,8 @@
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
             style="width: 240px"
           />
         </el-form-item>
@@ -378,6 +382,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { meetingApi } from '../../api/meeting'
+import { formatDate, formatDateTime } from '@/utils/date'
 
 const router = useRouter()
 
@@ -396,7 +401,7 @@ const dialogTitle = ref('')
 // 搜索表单
 const searchForm = reactive({
   title: '',
-  type: null,
+  tags: null,
   status: null,
   dateRange: null
 })
@@ -411,12 +416,25 @@ const pagination = reactive({
 const loadMeetingList = async () => {
   loading.value = true
   try {
+    // 构建查询参数
     const params = {
       page: pagination.page,
       size: pagination.size,
-      ...searchForm
+      title: searchForm.title,
+      status: searchForm.status,
+      tags: searchForm.tags
     }
 
+    // 处理日期范围
+    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+      // 使用固定格式的日期字符串
+      const startDate = searchForm.dateRange[0]
+      const endDate = searchForm.dateRange[1]
+      
+      // 使用查询参数传递日期范围，而不是放在请求体中
+      params.startDate = startDate
+      params.endDate = endDate
+    }
     
     const response = await meetingApi.getMeetingList(params, localStorage.getItem('tenantId')) 
     
@@ -445,7 +463,7 @@ const handleSearch = () => {
 const handleReset = () => {
   Object.assign(searchForm, {
     title: '',
-    type: null,
+    tags: null,
     status: null,
     dateRange: null
   })
@@ -634,25 +652,6 @@ const handleDelete = async (id) => {
 const handleDetailClose = () => {
   detailDialogVisible.value = false
   currentMeeting.value = null
-}
-
-// 格式化日期时间
-const formatDateTime = (dateString) => {
-  if (!dateString) return '-'
-  // const date = new Date(dateString)
-
-  const standardDateString = dateString.replace(/([+-]\d{2})$/, '$1:00');
-  const date = new Date(standardDateString);
-  if (isNaN(date.getTime())) {
-    return '无效日期';
-  }
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 }
 
 // 获取会议类型标签

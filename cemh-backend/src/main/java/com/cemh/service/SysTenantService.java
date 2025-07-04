@@ -6,6 +6,7 @@ import com.cemh.entity.SysTenant;
 
 
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 
 public interface SysTenantService {
     Result<PageResult<SysTenant>> getTenantList(Integer page, Integer size, String name, String code, Integer status, Integer packageType, Integer deleted);
@@ -25,6 +26,11 @@ public interface SysTenantService {
     Result<Void> renewTenant(Long tenantId, Integer years, Integer months, Integer days);
 
     /**
+     * 批量续费租户，到期时间增加指定年/月/日，并更新状态
+     */
+    Result<Void> batchRenewTenants(List<Long> tenantIds, Integer years, Integer months, Integer days);
+
+    /**
      * 停用指定租户，将status设为0
      */
     Result<Void> disableTenant(Long tenantId);
@@ -33,6 +39,16 @@ public interface SysTenantService {
      * 启用指定租户，将status设为1
      */
     Result<Void> enableTenant(Long tenantId);
+    
+    /**
+     * 获取所有有效租户（未删除且状态正常）
+     */
+    Result<List<SysTenant>> getAllActiveTenants();
+
+    /**
+     * 导出租户数据
+     */
+    void exportTenants(String name, String code, Integer status, Integer packageType, HttpServletResponse response);
 
     Object getById(Long tenantId);
 }

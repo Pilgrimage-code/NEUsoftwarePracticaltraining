@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+
 /**
  * 租户管理控制器
  */
@@ -31,6 +34,12 @@ public class SysTenantController {
                                                        @RequestParam(required = false) Integer packageType,
                                                        @RequestParam(required = false) Integer deleted) {
         return sysTenantService.getTenantList(page, size, name, code, status, packageType, deleted);
+    }
+
+    @Operation(summary = "获取所有活跃租户", description = "获取所有未删除且状态正常的租户")
+    @GetMapping("/all")
+    public Result<List<SysTenant>> getAllActiveTenants() {
+        return sysTenantService.getAllActiveTenants();
     }
 
     @PostMapping
@@ -68,6 +77,56 @@ public class SysTenantController {
                                     @RequestParam(required = false) Integer months,
                                     @RequestParam(required = false) Integer days) {
         return sysTenantService.renewTenant(tenantId, years, months, days);
+    }
+
+    /**
+     * 批量续费租户，到期时间增加指定年/月/日，并更新状态
+     */
+    @PostMapping("/batch-renew")
+    @Operation(summary = "批量续费租户", description = "批量续费租户，到期时间增加指定年/月/日，并更新状态")
+    public Result<Void> batchRenewTenants(@RequestBody List<Long> tenantIds,
+                                         @RequestParam(required = false) Integer years,
+                                         @RequestParam(required = false) Integer months,
+                                         @RequestParam(required = false) Integer days) {
+        return sysTenantService.batchRenewTenants(tenantIds, years, months, days);
+    }
+
+    /**
+     * 导出租户数据
+     */
+    @GetMapping("/export")
+    @Operation(summary = "导出租户数据", description = "导出租户数据到Excel文件")
+    public void exportTenants(@RequestParam(required = false) String name,
+                              @RequestParam(required = false) String code,
+                              @RequestParam(required = false) String status,
+                              @RequestParam(required = false) String packageType,
+                              HttpServletResponse response) {
+        try {
+            // 将字符串参数转换为Integer，确保安全处理
+            Integer statusInt = null;
+            Integer packageTypeInt = null;
+            
+            if (status != null && !status.isEmpty() && !"null".equals(status)) {
+                try {
+                    statusInt = Integer.parseInt(status);
+                } catch (NumberFormatException e) {
+                    // 忽略转换错误
+                }
+            }
+            
+            if (packageType != null && !packageType.isEmpty() && !"null".equals(packageType)) {
+                try {
+                    packageTypeInt = Integer.parseInt(packageType);
+                } catch (NumberFormatException e) {
+                    // 忽略转换错误
+                }
+            }
+            
+            sysTenantService.exportTenants(name, code, statusInt, packageTypeInt, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 异常已在Service层处理
+        }
     }
 
     /**

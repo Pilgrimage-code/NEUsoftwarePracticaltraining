@@ -578,8 +578,23 @@ export default {
     const handleVideoUploadSuccess = (data) => {
       console.log('视频上传成功:', data);
       if (data && data.url) {
-        // 获取原始URL
+        // 获取视频URL
         let videoUrl = data.url;
+        console.log('返回的原始视频URL:', videoUrl);
+        
+        // 确保URL格式正确
+        if (videoUrl.match(/^https?:\/\//)) {
+          // 如果是完整URL，检查是否是日期格式文件名
+          const filename = videoUrl.substring(videoUrl.lastIndexOf('/') + 1);
+          if (filename.match(/\d{8}_.*\.\w+$/)) {
+            // 保持URL不变，因为我们已经在前端和后端统一了处理逻辑
+            console.log('日期格式文件名:', filename);
+          }
+        } else if (!videoUrl.startsWith('/')) {
+          // 确保相对路径以斜杠开头
+          videoUrl = '/' + videoUrl;
+          console.log('添加前导斜杠:', videoUrl);
+        }
         
         // 将视频URL更新到表单
         chapterForm.videoUrl = videoUrl;

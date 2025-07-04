@@ -59,7 +59,7 @@ export const userApi = {
     return request({
       url: `/api/users/${id}/status`,
       method: 'put',
-      params: { status }
+      data: { status }
     })
   },
 
@@ -99,12 +99,10 @@ export const userApi = {
 
   // 导出用户列表
   exportUsers(params) {
-    return request({
-      url: '/api/users/export',
-      method: 'get',
-      params,
-      responseType: 'blob'
-    })
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${request.defaults.baseURL}/api/users/export?${queryString}`;
+    window.open(url, '_blank');
+    return Promise.resolve();
   },
 
   // 获取部门下的用户

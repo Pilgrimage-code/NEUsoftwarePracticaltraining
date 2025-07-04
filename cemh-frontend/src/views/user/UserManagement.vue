@@ -97,7 +97,11 @@
           <el-table-column prop="realName" label="真实姓名" width="120" />
           <el-table-column prop="phone" label="手机号" width="130" />
           <el-table-column prop="email" label="邮箱" width="180" />
-          <el-table-column prop="position" label="职位" width="120" />
+          <el-table-column label="性别" width="80">
+            <template #default="{ row }">
+              {{ row.gender === 1 ? '男' : row.gender === 2 ? '女' : '未知' }}
+            </template>
+          </el-table-column>
           <el-table-column label="状态" width="80">
             <template #default="{ row }">
               <el-tag :type="row.status === 1 ? 'success' : 'danger'">
@@ -204,17 +208,12 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="职位" prop="position">
-              <el-input v-model="userForm.position" placeholder="请输入职位" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
             <el-form-item label="工号" prop="employeeNo">
               <el-input v-model="userForm.employeeNo" placeholder="请输入工号" />
             </el-form-item>
           </el-col>
+        </el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="状态" prop="status">
               <el-select v-model="userForm.status" placeholder="请选择状态" style="width: 100%">
@@ -285,7 +284,6 @@ export default {
       phone: '',
       email: '',
       gender: 0,
-      position: '',
       employeeNo: '',
       status: 1,
       remark: ''
@@ -316,7 +314,10 @@ export default {
         const params = {
           page: pagination.page,
           size: pagination.size,
-          ...searchForm
+          username: searchForm.username,
+          nickname: searchForm.realName,
+          phone: searchForm.phone,
+          status: searchForm.status
         }
         const response = await userApi.getUserList(params)
         userList.value = response.data.records
@@ -459,7 +460,13 @@ export default {
     const handleExport = async () => {
       try {
         loading.value = true
-        await userApi.exportUsers(searchForm)
+        const params = {
+          username: searchForm.username,
+          nickname: searchForm.realName,
+          phone: searchForm.phone,
+          status: searchForm.status
+        }
+        await userApi.exportUsers(params)
         ElMessage.success('导出成功')
       } catch (error) {
         ElMessage.error('导出失败')
@@ -526,7 +533,6 @@ export default {
         phone: '',
         email: '',
         gender: 0,
-        position: '',
         employeeNo: '',
         status: 1,
         remark: ''
