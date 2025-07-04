@@ -302,3 +302,6 @@ cemh-backend/
 - 优化用户界面和用户体验
 - 增加自动化测试覆盖率
 - 集成CI/CD流程
+
+### 返回readme
+[readme.md](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining)
