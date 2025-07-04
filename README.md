@@ -46,9 +46,9 @@
   - [开发前的配置要求](#开发前的配置要求)
   - [安装步骤](#安装步骤)
 - [文件目录说明](#文件目录说明)
-- [项目细节](#项目细节)
 - [部署](#部署)
 - [使用到的框架](#使用到的框架)
+- [项目细节](#项目细节)
 - [贡献者](#贡献者)
   - [如何参与该开源项目](#如何参与该开源项目)
 - [版本控制](#版本控制)
@@ -96,11 +96,6 @@ cemh-backend/
 ```
 
 
-
-### 项目细节 
-
-请阅读[ARCHITECTURE.md](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/main/ARCHITECTURE.md) 查阅为该项目的架构。
-
 ### 部署
 
 #### 前端部署
@@ -137,6 +132,10 @@ mvn spring-boot:run
 - [xxxxxxx](https://getbootstrap.com)
 - [xxxxxxx](https://jquery.com)
 - [xxxxxxx](https://laravel.com)
+
+### 项目细节 
+
+请阅读[ARCHITECTURE.md](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/main/ARCHITECTURE.md) 查阅为该项目的架构。
 
 ### 贡献者
 
