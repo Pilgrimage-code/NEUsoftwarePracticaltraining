@@ -11,8 +11,6 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-(这里要把仓库设为公开才能识别数据)
 
 <!-- PROJECT LOGO -->
 <br />
@@ -190,7 +188,7 @@ mvn spring-boot:run
 [license-shield]: https://img.shields.io/github/license/Pilgrimage-code/NEUsoftwarePracticaltraining.svg?style=flat-square
 [license-url]: https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/main/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/shaojintian
+
 
 
 
