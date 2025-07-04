@@ -76,7 +76,6 @@ git clone https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining.git
 ```
 
 ### 文件目录说明
-eg:
 
 ```
 cemh-backend/
@@ -104,7 +103,7 @@ cemh-backend/
 
 ### 开发的架构 
 
-请阅读[ARCHITECTURE.md](https://github.com/shaojintian/Best_README_template/blob/master/ARCHITECTURE.md) 查阅为该项目的架构。
+请阅读[ARCHITECTURE.md](https://github.com/sPilgrimage-code/NEUsoftwarePracticaltraining/blob/master/ARCHITECTURE.md) 查阅为该项目的架构。
 
 ### 部署
 
