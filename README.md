@@ -103,11 +103,11 @@ cemh-backend/
 
 ### 开发的架构 
 
-请阅读[ARCHITECTURE.md](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/ARCHITECTURE.md) 查阅为该项目的架构。
+请阅读[ARCHITECTURE.md](https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining/blob/master/ARCHITECTURE.md) 查阅为该项目的架构。
 
 ### 部署
 
-#### 9.2 前端部署
+#### 前端部署
 
 ```bash
 # 进入前端目录
@@ -123,7 +123,7 @@ npm run dev
 npm run build
 ```
 
-#### 9.3 后端部署
+#### 后端部署
 
 ```bash
 # 进入后端目录
