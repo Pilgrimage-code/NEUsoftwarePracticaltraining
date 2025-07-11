@@ -73,6 +73,7 @@ git clone https://github.com/Pilgrimage-code/NEUsoftwarePracticaltraining.git
 ### 文件目录说明
 
 ```
+后端文件目录
 cemh-backend/
 ├── src/main/
 │   ├── java/com/cemh/
@@ -93,7 +94,36 @@ cemh-backend/
 │       └── application.yml       # YAML配置
 └── pom.xml              # Maven配置文件
 ```
-
+```
+前端文件目录
+cemh-frontend/
+├── dist/                    # 构建输出目录
+│   ├── assets/
+│   │   ├── css/
+│   │   └── js/
+├── node_modules/            # 依赖包目录
+├── public/                  # 静态资源目录
+├── src/                     # 源代码目录
+│   ├── api/                 # API接口定义
+│   ├── assets/              # 静态资源
+│   │   └── css/
+│   ├── components/          # 公共组件
+│   ├── router/              # 路由配置
+│   ├── store/               # 状态管理
+│   ├── styles/              # 样式文件
+│   ├── utils/               # 工具函数
+│   └── views/               # 页面组件
+│       ├── Chat/            # 聊天功能
+│       ├── auth/            # 认证相关
+│       ├── course/          # 课程管理
+│       ├── dashboard/       # 仪表板
+│       ├── error/           # 错误页面
+│       ├── layout/          # 布局组件
+│       ├── meeting/         # 会议管理
+│       ├── news/            # 新闻管理
+│       ├── system/          # 系统管理
+│       └── user/            # 用户管理
+```
 
 ### 部署
 
