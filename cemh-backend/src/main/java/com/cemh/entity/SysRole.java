@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
  * 
  * @author 测盟汇技术团队
  * @version 1.0.0
- * @since 2024-06-16
+ * @since 2025-6-28
  */
 @Schema(description = "角色信息")
 @TableName("sys_role")

@@ -11,7 +11,7 @@ import java.util.List;
  * 
  * @author 测盟汇技术团队
  * @version 1.0.0
- * @since 2024-06-16
+ * @since 2025-6-28
  */
 @Mapper
 public interface SysTenantMapper extends BaseMapper<SysTenant> {
