@@ -8,10 +8,6 @@ import java.util.List;
 
 /**
  * 分页结果类
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-15
  */
 @Schema(description = "分页结果")
 public class PageResult<T> implements Serializable {

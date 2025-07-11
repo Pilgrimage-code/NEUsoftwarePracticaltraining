@@ -7,10 +7,7 @@ import javax.validation.constraints.Size;
 
 /**
  * 登录请求DTO
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-15
+
  */
 @Schema(description = "登录请求参数")
 public class LoginDTO {

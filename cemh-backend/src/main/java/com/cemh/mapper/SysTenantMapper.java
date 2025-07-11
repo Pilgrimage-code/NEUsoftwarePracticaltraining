@@ -8,10 +8,6 @@ import java.util.List;
 
 /**
  * 租户信息Mapper接口
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-16
  */
 @Mapper
 public interface SysTenantMapper extends BaseMapper<SysTenant> {

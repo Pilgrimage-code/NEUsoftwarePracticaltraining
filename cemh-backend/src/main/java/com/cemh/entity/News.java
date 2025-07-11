@@ -10,10 +10,6 @@ import java.time.LocalDateTime;
 
 /**
  * 资讯实体类
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-15
  */
 @Schema(description = "资讯信息")
 @TableName("news")

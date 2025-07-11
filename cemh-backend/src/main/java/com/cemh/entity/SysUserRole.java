@@ -8,10 +8,6 @@ import javax.validation.constraints.NotNull;
 
 /**
  * 用户角色关联实体类
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-16
  */
 @Schema(description = "用户角色关联信息")
 @TableName("sys_user_role")

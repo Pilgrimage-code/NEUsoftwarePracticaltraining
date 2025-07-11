@@ -14,10 +14,6 @@ import java.time.LocalDateTime;
 
 /**
  * 学习记录实体类
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-07-10
  */
 @Data
 @EqualsAndHashCode(callSuper = false)

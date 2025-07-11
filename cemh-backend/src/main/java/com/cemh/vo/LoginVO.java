@@ -6,10 +6,6 @@ import java.util.List;
 
 /**
  * 登录响应VO
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-15
  */
 @Schema(description = "登录响应数据")
 public class LoginVO {

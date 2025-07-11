@@ -12,10 +12,6 @@ import java.util.Map;
 
 /**
  * JWT工具类
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-15
  */
 @Component
 public class JwtUtils {

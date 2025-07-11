@@ -6,10 +6,6 @@ import com.cemh.vo.LoginVO;
 
 /**
  * 认证服务接口
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-15
  */
 public interface AuthService {
 

@@ -9,10 +9,6 @@ import javax.validation.constraints.Size;
 
 /**
  * 课程分类实体类
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-07-10
  */
 @Schema(description = "课程分类信息")
 @TableName("course_category")

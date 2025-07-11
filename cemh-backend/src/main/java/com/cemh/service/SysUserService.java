@@ -8,9 +8,6 @@ import java.util.List;
 
 /**
  * 用户服务接口
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
  */
 public interface SysUserService {
 

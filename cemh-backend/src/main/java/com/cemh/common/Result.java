@@ -7,10 +7,6 @@ import java.io.Serializable;
 
 /**
  * 统一响应结果类
- * 
- * @author 测盟汇技术团队
- * @version 1.0.0
- * @since 2024-06-15
  */
 @Schema(description = "统一响应结果")
 @JsonInclude(JsonInclude.Include.NON_NULL)
